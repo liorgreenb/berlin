@@ -115,8 +115,10 @@
   .stop.gig .t .s { color: var(--hot-ink); }
   .leg { padding: 0 0 0 14px; border-left: 2px dotted var(--rule); font: 500 12px/2.2 var(--sans); color: var(--mute); }
   .ctl { display: flex; }
-  .ctl button { border: 0; background: none; width: 32px; height: 32px; border-radius: 10px; color: var(--mute); display: grid; place-items: center; }
-  .ctl button:active { background: var(--rule); }
+  .ctl button, .ctl a.go { border: 0; background: none; width: 32px; height: 32px; border-radius: 10px; color: var(--mute); display: grid; place-items: center; }
+  .ctl a.go { color: var(--accent); }
+  .ctl button:active, .ctl a.go:active { background: var(--rule); }
+  a.add { color: var(--accent); }
   .alts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 0 6px 14px; font-size: 12px; color: var(--mute); }
   .alts button { border: 1.5px solid var(--rule); background: var(--solid); border-radius: 999px; padding: 0 12px; font: 600 12.5px/1 var(--sans); min-block-size: 34px; }
   .acts { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; }
@@ -136,6 +138,7 @@
             box-shadow: 0 6px 18px rgb(0 0 0 / .35); white-space: nowrap; cursor: pointer; animation: pop .5s var(--spring) both; }
   .gigpin .b { width: 26px; height: 26px; border-radius: 50%; background: var(--hot); display: grid; place-items: center; }
   .gigpin svg.i { width: 14px; height: 14px; stroke: #fff; }
+  .hotelpin { z-index: 1; } .hotelpin .b { background: var(--accent); }
   .num { width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; font: 700 11px/1 var(--sans);
          border: 2px solid var(--solid); pointer-events: none; }
   .me { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); border: 3px solid #fff; animation: pulse 2.2s infinite; }
@@ -201,6 +204,7 @@ const ICON = {
   scan:   'M3 7V4h3M21 7V4h-3M3 17v3h3M21 17v3h-3M8 12a4 4 0 1 0 8 0 4 4 0 0 0-8 0',
   up: 'M12 19V5M5 12l7-7 7 7', down: 'M12 5v14M5 12l7 7 7-7', x: 'M6 6l12 12M18 6 6 18', plus: 'M12 5v14M5 12h14', check: 'M5 12.5l4.5 4.5L19 7',
   walk: 'M13 4a1.5 1.5 0 1 0 0-.01M9 21l2-6 3 2v4M10 9l3-1 2 3 3 1M8 13l2-4',
+  nav: 'M3 11l18-8-8 18-2-8z',
   ext: 'M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5',
 };
 const svg = k => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICON[k]}"/></svg>`;
@@ -246,6 +250,7 @@ const walk = m => m > 3500 ? `${(m/1000).toFixed(1)} km · take transit` : `${Ma
 const origin = () => S.me || VENUE;
 const ll = p => [p.lng, p.lat];
 const mapsLink = p => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name + ' ' + p.lat + ',' + p.lng)}`;
+const dirLink = p => `https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}&travelmode=${dist(origin(), p) > 3500 ? 'transit' : 'walking'}`;
 const routeLink = stops => {
   const f = p => `${p.lat},${p.lng}`, [o, ...rest] = stops, d = rest.pop();
   return `https://www.google.com/maps/dir/?api=1&travelmode=walking&origin=${f(o)}&destination=${f(d)}` + (rest.length ? `&waypoints=${rest.map(f).join('|')}` : '');
@@ -269,15 +274,17 @@ map.on('load', () => {
 const popupHtml = p => `<div class="pop"><h3>${esc(p.gig ? p.artist : p.name)}</h3>
   <div class="m">${p.gig ? esc(p.venue) + ' · ' : ''}${CATS[p.cat].label}${p.src === 'osm' ? ' · OSM' : ''} · ${walk(dist(origin(), p))}</div>
   <p>${esc(p.note || '')}</p>
-  <div class="acts">${addLabel(p)}<a class="btn" href="${mapsLink(p)}" target="_blank" rel="noopener">${svg('ext')}Maps</a></div></div>`;
+  <div class="acts">${addLabel(p)}<a class="btn" href="${dirLink(p)}" target="_blank" rel="noopener">${svg('nav')}Directions</a><a class="btn" href="${mapsLink(p)}" target="_blank" rel="noopener" aria-label="Open ${esc(p.name)} in Google Maps">${svg('ext')}</a></div></div>`;
 
-const visible = () => [...PICKS, ...S.live].filter(p => S.cats.has(p.cat));
+const visible = () => [...PICKS, ...S.live].filter(p => p === HOTEL || S.cats.has(p.cat));
 
 function renderMap() {
   if (!mapReady) return;
   marks.forEach(m => m.remove()); marks.clear();
   visible().forEach(p => {
-    const node = p.gig
+    const node = p === HOTEL
+      ? el(`<div class="gigpin hotelpin"><span class="b">${svg('base')}</span>Hotel</div>`)
+      : p.gig
       ? el(`<div class="gigpin"><span class="b">${svg('music')}</span>${esc(p.artist)}${p.time ? ' · ' + p.time : ''}</div>`)
       : el(`<div class="pin ${p.src === 'osm' ? 'osm' : ''}" style="color:${CATS[p.cat].color}">${svg(p.cat)}</div>`);
     const m = new maplibregl.Marker({ element: node }).setLngLat(ll(p))
@@ -295,12 +302,13 @@ const inPlan = p => S.plan[S.day].some(s => s.id === p.id);
 const addLabel = p => inPlan(p) ? `<span class="btn pri">${svg('check')}${day().label}</span>` : `<button class="btn pri" data-add="${p.id}">${svg('plus')}Add to ${day().label}</button>`;
 const addDot = p => inPlan(p) ? `<span class="add on" role="img" aria-label="In ${day().label} plan">${svg('check')}</span>`
                               : `<button class="add" data-add="${p.id}" aria-label="Add ${esc(p.name)} to ${day().label}">${svg('plus')}</button>`;
+const dirBtn = (p, cls) => `<a class="${cls}" href="${dirLink(p)}" target="_blank" rel="noopener" aria-label="Directions to ${esc(p.gig ? p.artist : p.name)} in Google Maps">${svg('nav')}</a>`;
 const delay = i => `animation-delay:${Math.min(i, 12) * 35}ms`;
 const title = p => p.gig ? p.artist : p.name;
 
 const row = (p, from, i) => `<li class="row" style="${delay(i)}">${ico(p.cat)}
   <button class="t" data-focus="${p.id}"><span class="n">${esc(p.name)}</span><span class="s">${walk(dist(from, p))} · ${CATS[p.cat].label}${p.src === 'osm' ? ' · OSM' : ''}${p.note ? ' · ' + esc(p.note) : ''}</span></button>
-  ${addDot(p)}</li>`;
+  ${dirBtn(p, 'add')}${addDot(p)}</li>`;
 const rows = (list, from) => `<ul>${list.map((p, i) => row(p, from, i)).join('')}</ul>`;
 
 const nearest = (from, n, exclude = []) => visible()
@@ -332,7 +340,7 @@ function renderPlan() {
         <span class="tm">${p.time || ''}</span>
         <div class="card">${p.gig ? `<span class="ico" aria-hidden="true" style="background:var(--hot);color:#fff">${svg('music')}</span>` : ''}
           <button class="t" data-focus="${p.id}"><span class="n">${esc(title(p))}</span><span class="s">${p.gig ? esc(p.venue) + ' · gig' : CATS[p.cat].label}</span></button>
-          <div class="ctl"><button data-mv="${i},-1" aria-label="Move ${esc(title(p))} earlier">${svg('up')}</button><button data-mv="${i},1" aria-label="Move ${esc(title(p))} later">${svg('down')}</button><button data-rm="${i}" aria-label="Remove ${esc(title(p))}">${svg('x')}</button></div>
+          <div class="ctl">${dirBtn(p, 'go')}<button data-mv="${i},-1" aria-label="Move ${esc(title(p))} earlier">${svg('up')}</button><button data-mv="${i},1" aria-label="Move ${esc(title(p))} later">${svg('down')}</button><button data-rm="${i}" aria-label="Remove ${esc(title(p))}">${svg('x')}</button></div>
         </div>
         ${p.alts?.length ? `<span></span><div class="alts">Or:${p.alts.map(a => `<button data-swap="${i},${a}">${esc(title(byId(a)))}</button>`).join('')}</div>` : ''}
       </li>`;
