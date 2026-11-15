@@ -3,141 +3,159 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#141414">
 <title>Berlin · MLcon week</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <style>
-  :root { --bg:#fff; --fg:#16181d; --mut:#6b7280; --line:#e5e7eb; --acc:#2563eb; }
-  * { box-sizing:border-box; }
-  html,body { margin:0; height:100%; font:15px/1.35 -apple-system,system-ui,Segoe UI,Roboto,sans-serif; color:var(--fg); }
+  :root {
+    --paper:#f3f0e8; --ink:#141414; --yellow:#f0d722; --rule:#ddd8cb; --mute:#6d6a63;
+    --display:'Barlow Condensed', sans-serif; --body:'Barlow', sans-serif;
+    --sheet:46vh;
+  }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { margin:0; height:100%; background:var(--paper); color:var(--ink); font:15px/1.35 var(--body); }
+  button { font:inherit; color:inherit; cursor:pointer; }
   #map { position:fixed; inset:0; }
-  .top { position:fixed; top:0; left:0; right:0; z-index:1000; padding:calc(env(safe-area-inset-top) + 8px) 8px 6px;
-         display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; }
-  .chip { flex:none; border:1px solid var(--line); background:#fff; border-radius:999px; padding:6px 11px; font-size:14px;
-          box-shadow:0 1px 3px #0002; white-space:nowrap; }
-  .chip.on { background:var(--fg); color:#fff; border-color:var(--fg); }
-  .fab { position:fixed; right:10px; z-index:1000; display:flex; flex-direction:column; gap:8px; bottom:calc(46vh + 10px); transition:bottom .2s; }
-  .sheet.min ~ .fab { bottom:calc(64px + env(safe-area-inset-bottom)); }
-  .fab button { border:0; background:#fff; border-radius:12px; padding:10px 12px; font-size:14px; box-shadow:0 2px 6px #0003; }
-  .sheet { position:fixed; left:0; right:0; bottom:0; z-index:1000; height:46vh; background:var(--bg); border-radius:16px 16px 0 0;
-           box-shadow:0 -4px 16px #0002; display:flex; flex-direction:column; transition:height .2s; padding-bottom:env(safe-area-inset-bottom); }
-  .sheet.min { height:calc(56px + env(safe-area-inset-bottom)); }
-  .handle { padding:8px 12px 4px; display:flex; gap:8px; align-items:center; }
-  .handle .grip { width:36px; height:4px; background:var(--line); border-radius:2px; position:absolute; left:50%; top:5px; transform:translateX(-50%); }
-  .tab { border:0; background:none; font-size:15px; font-weight:600; color:var(--mut); padding:8px 6px; }
-  .tab.on { color:var(--fg); border-bottom:2px solid var(--fg); }
-  .status { margin-left:auto; font-size:12px; color:var(--mut); max-width:45%; text-align:right; }
-  .body { overflow-y:auto; flex:1; padding:0 12px 12px; }
-  .row { display:flex; gap:10px; align-items:center; padding:9px 0; border-bottom:1px solid var(--line); }
-  .dot { flex:none; width:30px; height:30px; border-radius:50%; display:grid; place-items:center; font-size:15px; }
+
+  /* ---- header: station sign ---- */
+  .top { position:fixed; top:0; left:0; right:0; z-index:10; padding:calc(env(safe-area-inset-top) + 10px) 10px 0; pointer-events:none; }
+  .sign { pointer-events:auto; display:flex; align-items:center; gap:10px; background:var(--ink); color:#fff; border-radius:12px;
+          padding:8px 12px 8px 8px; box-shadow:0 6px 20px #0003; }
+  .sign .u { width:34px; height:34px; border-radius:7px; background:var(--yellow); color:var(--ink); display:grid; place-items:center;
+             font:800 24px/1 var(--display); }
+  .sign h1 { margin:0; font:700 21px/1 var(--display); letter-spacing:.04em; text-transform:uppercase; }
+  .sign small { display:block; font:500 12px/1.2 var(--body); color:#bdb9ae; letter-spacing:.02em; margin-top:2px; }
+  .sign .gps { margin-left:auto; font:600 12px/1 var(--display); letter-spacing:.06em; text-transform:uppercase; color:#bdb9ae;
+               display:flex; align-items:center; gap:6px; text-align:right; }
+  .sign .gps i { width:8px; height:8px; border-radius:50%; background:#777; flex:none; }
+  .sign .gps.live i { background:#38d26b; box-shadow:0 0 0 3px #38d26b33; }
+  .chips { pointer-events:auto; display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; padding:8px 0 10px; }
+  .chips::-webkit-scrollbar { display:none; }
+  .chip { flex:none; display:flex; align-items:center; gap:7px; border:0; background:#fff; border-radius:8px; padding:4px 10px 4px 4px;
+          font:600 14px/1 var(--body); box-shadow:0 2px 8px #0002; transition:opacity .15s, transform .15s; }
+  .chip:active { transform:scale(.96); }
+  .chip.off { opacity:.45; box-shadow:none; }
+  .badge { width:26px; height:22px; border-radius:5px; display:grid; place-items:center; color:#fff; flex:none;
+           font:700 13px/1 var(--display); letter-spacing:.02em; }
+
+  /* ---- floating actions ---- */
+  .fab { position:fixed; right:10px; z-index:10; display:flex; flex-direction:column; gap:8px; bottom:calc(var(--sheet) + 12px); transition:bottom .25s; }
+  .fab button { border:0; background:var(--ink); color:#fff; border-radius:10px; padding:10px 13px; font:700 14px/1 var(--display);
+                letter-spacing:.06em; text-transform:uppercase; box-shadow:0 4px 14px #0004; }
+  .fab button.y { background:var(--yellow); color:var(--ink); }
+
+  /* ---- sheet ---- */
+  .sheet { position:fixed; left:0; right:0; bottom:0; z-index:11; height:var(--sheet); background:var(--paper); border-top:3px solid var(--ink);
+           border-radius:18px 18px 0 0; display:flex; flex-direction:column; transition:height .25s; padding-bottom:env(safe-area-inset-bottom);
+           box-shadow:0 -10px 30px #0002; }
+  body.min { --sheet:calc(62px + env(safe-area-inset-bottom)); }
+  .grip { position:absolute; top:-3px; left:50%; transform:translateX(-50%); width:60px; height:22px; border:0; background:none; }
+  .grip::after { content:''; position:absolute; top:9px; left:12px; right:12px; height:4px; border-radius:2px; background:var(--rule); }
+  .bar { display:flex; align-items:center; gap:10px; padding:16px 14px 10px; }
+  .seg { display:flex; background:#e6e2d7; border-radius:9px; padding:3px; }
+  .seg button { border:0; background:none; padding:7px 16px; border-radius:7px; font:700 15px/1 var(--display); letter-spacing:.06em; text-transform:uppercase; color:var(--mute); }
+  .seg button.on { background:var(--ink); color:#fff; }
+  .status { margin-left:auto; font-size:12px; color:var(--mute); text-align:right; max-width:42%; }
+  .body { overflow-y:auto; flex:1; padding:0 14px 16px; overscroll-behavior:contain; }
+  .kicker { font:700 12px/1 var(--display); letter-spacing:.12em; text-transform:uppercase; color:var(--mute); margin:12px 0 4px; }
+
+  .row { display:flex; gap:11px; align-items:center; padding:10px 0; border-bottom:1px solid var(--rule); animation:up .35s both; }
   .row .t { flex:1; min-width:0; }
   .row .n { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .row .s { font-size:13px; color:var(--mut); }
-  .btn { border:1px solid var(--line); background:#fff; border-radius:8px; padding:5px 9px; font-size:13px; flex:none; }
-  .btn.pri { background:var(--acc); color:#fff; border-color:var(--acc); }
-  .days { display:flex; gap:6px; padding:4px 0 8px; overflow-x:auto; }
-  .hint { font-size:13px; color:var(--mut); margin-bottom:6px; }
-  .leg { font-size:12px; color:var(--mut); padding:2px 0 2px 40px; }
-  .acts { display:flex; gap:6px; flex-wrap:wrap; margin:10px 0; }
-  h4 { margin:14px 0 2px; font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:var(--mut); }
-  .pop b { font-size:15px; } .pop p { margin:4px 0 8px; color:#374151; } .pop .acts { margin:0; }
-  .me { width:16px; height:16px; border-radius:50%; background:var(--acc); border:3px solid #fff; box-shadow:0 0 0 2px #2563eb55; }
-  .pin { width:28px; height:28px; border-radius:50% 50% 50% 0; transform:rotate(-45deg); display:grid; place-items:center; border:2px solid #fff; box-shadow:0 1px 4px #0005; }
-  .pin span { transform:rotate(45deg); font-size:13px; }
-  .pin.osm { width:20px; height:20px; opacity:.85; } .pin.osm span { font-size:10px; }
-  .num { background:var(--fg); color:#fff; width:22px; height:22px; border-radius:50%; display:grid; place-items:center; font-size:12px; font-weight:700; border:2px solid #fff; }
-  .empty { color:var(--mut); padding:16px 0; }
+  .row .s { font-size:13px; color:var(--mute); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .row .s b { color:var(--ink); font:700 13px/1 var(--display); letter-spacing:.04em; }
+  .add { flex:none; width:34px; height:34px; border-radius:50%; border:2px solid var(--ink); background:#fff; font:700 20px/1 var(--display); display:grid; place-items:center; }
+  .add.on { background:var(--yellow); }
+  @keyframes up { from { opacity:0; transform:translateY(6px); } }
+
+  /* ---- plan as a U-Bahn line ---- */
+  .days { display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; padding-bottom:4px; }
+  .day { flex:none; border:2px solid var(--ink); background:#fff; border-radius:8px; padding:6px 10px; font:700 15px/1 var(--display); letter-spacing:.04em; text-transform:uppercase; }
+  .day.on { background:var(--ink); color:#fff; }
+  .day sup { font-size:11px; color:var(--yellow); margin-left:2px; }
+  .day:not(.on) sup { color:var(--mute); }
+  .hint { font-size:13px; color:var(--mute); margin:8px 0 4px; }
+  .line { position:relative; margin:10px 0 4px; }
+  .line::before { content:''; position:absolute; left:13px; top:14px; bottom:14px; width:8px; background:var(--yellow); border:2px solid var(--ink); border-radius:4px; }
+  .stn { position:relative; display:flex; align-items:center; gap:12px; padding:6px 0; animation:up .35s both; }
+  .stn .o { flex:none; width:34px; height:34px; border-radius:50%; background:#fff; border:3px solid var(--ink); display:grid; place-items:center;
+            font:800 15px/1 var(--display); z-index:1; }
+  .stn .t { flex:1; min-width:0; }
+  .stn .n { font:700 17px/1.1 var(--display); letter-spacing:.02em; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .stn .s { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--mute); margin-top:3px; }
+  .stn .s .badge { width:22px; height:16px; font-size:11px; }
+  .ctl { display:flex; gap:2px; }
+  .ctl button { border:0; background:none; width:28px; height:30px; border-radius:6px; font-size:15px; color:var(--mute); }
+  .ctl button:active { background:#e6e2d7; }
+  .leg { padding:1px 0 1px 46px; font:600 12px/1.6 var(--display); letter-spacing:.08em; text-transform:uppercase; color:var(--mute); }
+  .acts { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 4px; }
+  .btn { border:2px solid var(--ink); background:#fff; border-radius:9px; padding:8px 12px; font:700 14px/1 var(--display); letter-spacing:.06em;
+         text-transform:uppercase; text-decoration:none; color:var(--ink); display:inline-flex; align-items:center; gap:6px; }
+  .btn.pri { background:var(--ink); color:#fff; }
+  .btn.y { background:var(--yellow); }
+  .empty { color:var(--mute); padding:14px 0; }
+
+  /* ---- map marks ---- */
+  .pin { width:28px; height:28px; border-radius:50%; display:grid; place-items:center; font-size:14px; border:2.5px solid #fff; box-shadow:0 2px 6px #0005; cursor:pointer; }
+  .pin.osm { width:13px; height:13px; border-width:2px; font-size:0; }
+  .num { width:24px; height:24px; border-radius:50%; background:#fff; border:3px solid var(--ink); display:grid; place-items:center; font:800 13px/1 var(--display); pointer-events:none; }
+  .me { width:18px; height:18px; border-radius:50%; background:#2f6fe4; border:3px solid #fff; box-shadow:0 0 0 0 #2f6fe480; animation:pulse 2s infinite; }
+  @keyframes pulse { 70% { box-shadow:0 0 0 14px #2f6fe400; } 100% { box-shadow:0 0 0 0 #2f6fe400; } }
+  .maplibregl-popup-content { background:var(--paper); border:2px solid var(--ink); border-radius:12px; padding:12px 14px; box-shadow:0 8px 24px #0003; font-family:var(--body); min-width:210px; }
+  .maplibregl-popup-tip { display:none; }
+  .maplibregl-popup-close-button { font-size:20px; padding:2px 8px; }
+  .pop h3 { margin:0 24px 4px 0; font:700 19px/1.1 var(--display); text-transform:uppercase; letter-spacing:.02em; }
+  .pop .m { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--mute); }
+  .pop p { margin:8px 0 10px; font-size:14px; }
+  .pop .acts { margin:0; }
+  .maplibregl-ctrl-attrib { font-size:10px; }
 </style>
 </head>
 <body>
 <div id="map"></div>
-<div class="top" id="chips"></div>
-<div class="sheet" id="sheet">
-  <div class="handle"><div class="grip"></div>
-    <button class="tab on" data-tab="near">Nearby</button>
-    <button class="tab" data-tab="plan">Plan</button>
+
+<header class="top">
+  <div class="sign">
+    <div class="u">U</div>
+    <div><h1>Berlin</h1><small>MLcon week · Nov 17–20</small></div>
+    <div class="gps" id="gps"><i></i><span>No fix</span></div>
+  </div>
+  <nav class="chips" id="chips"></nav>
+</header>
+
+<div class="fab">
+  <button id="btnMe">◎ Me</button>
+  <button id="btnLive" class="y">Scan here</button>
+</div>
+
+<section class="sheet" id="sheet">
+  <button class="grip" data-grip aria-label="Toggle panel"></button>
+  <div class="bar">
+    <div class="seg">
+      <button data-tab="near" class="on">Nearby</button>
+      <button data-tab="plan">Plan</button>
+    </div>
     <span class="status" id="status"></span>
   </div>
   <div class="body" id="body"></div>
-</div>
-<div class="fab">
-  <button id="btnMe">📍 Me</button>
-  <button id="btnLive">🔎 Live here</button>
-</div>
+</section>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="places.js"></script>
 <script>
-// ---------- Data ----------
+// ---------- Categories (styled as Berlin U-Bahn lines) ----------
 const CATS = {
-  base:   { label:'Base',       icon:'🏨', color:'#111827', osm:[] },
-  food:   { label:'Food',       icon:'🍜', color:'#ea580c', osm:['["amenity"~"^(restaurant|fast_food)$"]'] },
-  coffee: { label:'Coffee',     icon:'☕', color:'#92400e', osm:['["amenity"="cafe"]'] },
-  pubs:   { label:'Pubs & bars',icon:'🍺', color:'#ca8a04', osm:['["amenity"~"^(pub|bar|biergarten)$"]'] },
-  music:  { label:'Live music', icon:'🎷', color:'#7c3aed', osm:['["amenity"~"^(music_venue|nightclub)$"]'] },
-  sights: { label:'Sights',     icon:'🏛️', color:'#0891b2', osm:['["tourism"~"^(attraction|museum|gallery|viewpoint)$"]'] },
-  needs:  { label:'Essentials', icon:'🧴', color:'#16a34a', osm:['["amenity"~"^(pharmacy|atm)$"]','["shop"="supermarket"]'] },
+  base:   { code:'S',  label:'Base',       icon:'🏨', color:'#141414', osm:[] },
+  food:   { code:'U2', label:'Food',       icon:'🍜', color:'#da421e', osm:['["amenity"~"^(restaurant|fast_food)$"]'] },
+  coffee: { code:'U5', label:'Coffee',     icon:'☕', color:'#7e5330', osm:['["amenity"="cafe"]'] },
+  pubs:   { code:'U8', label:'Pubs & bars',icon:'🍺', color:'#224f86', osm:['["amenity"~"^(pub|bar|biergarten)$"]'] },
+  music:  { code:'U6', label:'Live music', icon:'🎷', color:'#8c6dab', osm:['["amenity"~"^(music_venue|nightclub)$"]'] },
+  sights: { code:'U3', label:'Sights',     icon:'🏛️', color:'#16683d', osm:['["tourism"~"^(attraction|museum|gallery|viewpoint)$"]'] },
+  needs:  { code:'U1', label:'Essentials', icon:'🧴', color:'#7dad4c', osm:['["amenity"~"^(pharmacy|atm)$"]','["shop"="supermarket"]'] },
 };
-
-const VENUE = { id:'venue', cat:'base', name:'Maritim proArte (MLcon)', lat:52.5186, lng:13.3886, note:'Friedrichstraße 151. Conference days Nov 18–19, workshops Nov 17 & 20.' };
-const P = (id,cat,name,lat,lng,note) => ({ id, cat, name, lat, lng, note, src:'pick' });
-const PICKS = [
-  VENUE,
-  P('ber','base','BER Airport',52.3667,13.5033,'FEX or S-Bahn into the centre, about 35–45 min to Friedrichstraße.'),
-  // coffee
-  P('barn','coffee','The Barn (Mitte)',52.5276,13.3988,'Serious specialty coffee on Auguststraße.'),
-  P('fathercarp','coffee','Father Carpenter',52.5255,13.4076,'Courtyard café, a good breakfast spot.'),
-  P('distrikt','coffee','Distrikt Coffee',52.5310,13.3935,'Brunch and coffee near Nordbahnhof.'),
-  P('bonanza','coffee','Bonanza Coffee Roasters',52.5390,13.4050,'Roastery in Prenzlauer Berg.'),
-  // food
-  P('vuong','food','Monsieur Vuong',52.5268,13.4078,'Vietnamese classic, quick and no reservations.'),
-  P('lebensmittel','food','Lebensmittel in Mitte',52.5240,13.4060,'Hearty German/Austrian food in a pub setting.'),
-  P('instanz','food','Zur letzten Instanz',52.5170,13.4140,'Berlin\'s oldest restaurant; traditional German.'),
-  P('borchardt','food','Borchardt',52.5149,13.3906,'Grand brasserie, schnitzel. Book ahead.'),
-  P('mustafa','food','Mustafa\'s Gemüse Kebap',52.4935,13.3878,'Famous veggie kebab. Expect a queue.'),
-  P('curry36','food','Curry 36',52.4932,13.3878,'Currywurst institution next to Mustafa\'s.'),
-  P('konnopke','food','Konnopke\'s Imbiss',52.5405,13.4122,'Currywurst stand under the U-Bahn tracks.'),
-  P('markthalle','food','Markthalle Neun',52.5020,13.4317,'Street Food Thursday runs Thursday evenings.'),
-  // pubs
-  P('lemke','pubs','Brauhaus Lemke',52.5225,13.4030,'Brewpub in the S-Bahn arches at Hackescher Markt.'),
-  P('mikkeller','pubs','Mikkeller Berlin',52.5288,13.4033,'Craft beer on Torstraße.'),
-  P('hopfenreich','pubs','Hopfenreich',52.4990,13.4370,'Kreuzberg craft beer bar with a big tap list.'),
-  P('prater','pubs','Prater Gaststätte',52.5398,13.4098,'Historic beer hall (the garden is closed in winter).'),
-  P('newton','pubs','Newton Bar',52.5135,13.3920,'Cocktails on Gendarmenmarkt.'),
-  P('buckbreck','pubs','Buck and Breck',52.5320,13.4000,'Tiny speakeasy. Ring the bell.'),
-  P('wuergeengel','pubs','Würgeengel',52.5010,13.4185,'Classic Kreuzberg cocktail bar.'),
-  // music
-  P('bflat','music','B-flat Jazz Club',52.5232,13.4085,'Jazz near Hackescher Markt, often with free sessions.'),
-  P('schlot','music','Kunstfabrik Schlot',52.5310,13.3870,'Jazz cellar in the Edison Höfe.'),
-  P('atrane','music','A-Trane',52.5068,13.3218,'Top jazz club in Charlottenburg.'),
-  P('quasimodo','music','Quasimodo',52.5060,13.3310,'Jazz, funk and soul basement club.'),
-  P('yorck','music','Yorckschlösschen',52.4928,13.3880,'Old jazz/blues pub in Kreuzberg.'),
-  P('lido','music','Lido',52.4990,13.4450,'Indie and rock gigs. Check the listings.'),
-  P('so36','music','SO36',52.5005,13.4220,'Legendary punk/indie venue.'),
-  P('konzerthaus','music','Konzerthaus Berlin',52.5136,13.3917,'Classical, on Gendarmenmarkt.'),
-  P('philharmonie','music','Philharmonie',52.5096,13.3700,'Berlin Phil. Check for last-minute tickets.'),
-  // sights
-  P('traenen','sights','Tränenpalast',52.5203,13.3870,'Free museum on the Cold War border crossing, next to the venue.'),
-  P('dussmann','sights','Dussmann KulturKaufhaus',52.5180,13.3888,'Huge bookshop, 2 min from the venue.'),
-  P('neues','sights','Neues Museum',52.5206,13.3977,'Museum Island. Home of the Nefertiti bust.'),
-  P('brandenburg','sights','Brandenburg Gate',52.5163,13.3777,'Best at night.'),
-  P('reichstag','sights','Reichstag dome',52.5186,13.3762,'Free, but register online in advance.'),
-  P('memorial','sights','Memorial to the Murdered Jews',52.5139,13.3787,'Walk through the field. Info centre underneath.'),
-  P('wall','sights','Berlin Wall Memorial',52.5352,13.3903,'Bernauer Straße open-air memorial.'),
-  P('topo','sights','Topography of Terror',52.5067,13.3834,'Free documentation centre.'),
-  P('esg','sights','East Side Gallery',52.5050,13.4397,'The longest surviving stretch of the Wall.'),
-  P('csm','sights','Computerspielemuseum',52.5170,13.4370,'Computer games museum on Karl-Marx-Allee.'),
-  P('technik','sights','Deutsches Technikmuseum',52.4986,13.3776,'Tech museum, including a Zuse computer exhibit.'),
-];
-
-const DAYS = [
-  { k:'tue', label:'Tue 17', hint:'Land at BER around noon. Afternoon and evening are free.',
-    suggest:['ber','venue','traenen','neues','vuong','bflat','lemke'] },
-  { k:'wed', label:'Wed 18', hint:'Conference day. Evenings are free.',
-    suggest:['venue','dussmann','reichstag','brandenburg','memorial','borchardt','newton'] },
-  { k:'thu', label:'Thu 19', hint:'Conference day. Street Food Thursday at Markthalle Neun.',
-    suggest:['venue','markthalle','hopfenreich','so36'] },
-  { k:'fri', label:'Fri 20', hint:'Morning only, then head to BER.',
-    suggest:['fathercarp','ber'] },
-];
+const badge = c => `<span class="badge" style="background:${CATS[c].color}">${CATS[c].code}</span>`;
 
 // ---------- State ----------
 const store = {
@@ -148,9 +166,7 @@ const S = {
   cats: new Set(store.get('cats', Object.keys(CATS))),
   plan: store.get('plan', Object.fromEntries(DAYS.map(d => [d.k, []]))),
   day: store.get('day', 'tue'),
-  tab: 'near',
-  me: null,
-  live: [],
+  tab: 'near', me: null, live: [],
 };
 const save = () => { store.set('cats', [...S.cats]); store.set('plan', S.plan); store.set('day', S.day); };
 const byId = id => PICKS.find(p => p.id === id) || S.live.find(p => p.id === id) || Object.values(S.plan).flat().find(p => p.id === id);
@@ -164,6 +180,7 @@ const dist = (a, b) => {
 };
 const walk = m => m > 4000 ? `${(m/1000).toFixed(1)} km · transit` : `${Math.max(1, Math.round(m * 1.25 / 80))} min walk`;
 const origin = () => S.me || VENUE;
+const ll = p => [p.lng, p.lat];
 const mapsLink = p => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name + ' ' + p.lat + ',' + p.lng)}`;
 const routeLink = stops => {
   const f = p => `${p.lat},${p.lng}`, [o, ...rest] = stops, d = rest.pop();
@@ -171,96 +188,112 @@ const routeLink = stops => {
          (rest.length ? `&waypoints=${rest.map(f).join('|')}` : '');
 };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+const el = html => { const d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstChild; };
 
-// ---------- Map ----------
-const map = L.map('map', { zoomControl:false }).setView([VENUE.lat, VENUE.lng], 14);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-  maxZoom:20, attribution:'© OpenStreetMap, © CARTO'
-}).addTo(map);
-const layers = { places: L.layerGroup().addTo(map), route: L.layerGroup().addTo(map) };
-let meMarker = null;
+// ---------- Map (MapLibre + OpenFreeMap, no API key) ----------
+const map = new maplibregl.Map({
+  container:'map', style:'https://tiles.openfreemap.org/styles/positron',
+  center: ll(VENUE), zoom:14, attributionControl:{ compact:true },
+});
+let mapReady = false, marks = new Map(), meMarker = null;
 
-const pinIcon = p => L.divIcon({ className:'', iconSize: p.src === 'osm' ? [20,20] : [28,28], iconAnchor: p.src === 'osm' ? [10,20] : [14,28],
-  html:`<div class="pin ${p.src === 'osm' ? 'osm' : ''}" style="background:${CATS[p.cat].color}"><span>${CATS[p.cat].icon}</span></div>` });
+map.on('load', () => {
+  map.addSource('route', { type:'geojson', data:{ type:'FeatureCollection', features:[] } });
+  map.addLayer({ id:'route-casing', type:'line', source:'route', layout:{ 'line-join':'round', 'line-cap':'round' }, paint:{ 'line-color':'#141414', 'line-width':10 } });
+  map.addLayer({ id:'route-fill', type:'line', source:'route', layout:{ 'line-join':'round', 'line-cap':'round' }, paint:{ 'line-color':'#f0d722', 'line-width':5 } });
+  mapReady = true;
+  render();
+});
 
-const popupHtml = p => `<div class="pop"><b>${esc(p.name)}</b>
-  <div style="color:#6b7280;font-size:12px">${CATS[p.cat].label}${p.src === 'osm' ? ' · OSM' : ''} · ${walk(dist(origin(), p))}</div>
-  ${p.note ? `<p>${esc(p.note)}</p>` : '<p></p>'}
-  <div class="acts">${addBtn(p)}<a class="btn" href="${mapsLink(p)}" target="_blank" rel="noopener">Maps</a></div></div>`;
+const popupHtml = p => `<div class="pop"><h3>${esc(p.name)}</h3>
+  <div class="m">${badge(p.cat)} ${CATS[p.cat].label}${p.src === 'osm' ? ' · OSM' : ''} · ${walk(dist(origin(), p))}</div>
+  <p>${esc(p.note || '')}</p>
+  <div class="acts">${addLabel(p)}<a class="btn" href="${mapsLink(p)}" target="_blank" rel="noopener">Maps ↗</a></div></div>`;
 
 const visible = () => [...PICKS, ...S.live].filter(p => S.cats.has(p.cat));
 
 function renderMap() {
-  layers.places.clearLayers(); layers.route.clearLayers();
-  visible().forEach(p => L.marker([p.lat, p.lng], { icon: pinIcon(p) }).bindPopup(() => popupHtml(p)).addTo(layers.places));
+  if (!mapReady) return;
+  marks.forEach(m => m.remove()); marks.clear();
+  visible().forEach(p => {
+    const node = el(`<div class="pin ${p.src === 'osm' ? 'osm' : ''}" style="background:${CATS[p.cat].color}">${CATS[p.cat].icon}</div>`);
+    const m = new maplibregl.Marker({ element:node }).setLngLat(ll(p))
+      .setPopup(new maplibregl.Popup({ offset:16, maxWidth:'280px' }).setHTML(popupHtml(p))).addTo(map);
+    marks.set(p.id, m);
+  });
   const stops = S.plan[S.day];
-  if (stops.length > 1) L.polyline(stops.map(p => [p.lat, p.lng]), { color:'#111827', weight:4, opacity:.7, dashArray:'6 8' }).addTo(layers.route);
-  stops.forEach((p, i) => L.marker([p.lat, p.lng], { icon: L.divIcon({ className:'', iconSize:[22,22], iconAnchor:[11,34], html:`<div class="num">${i+1}</div>` }), interactive:false }).addTo(layers.route));
+  map.getSource('route').setData({ type:'FeatureCollection', features: stops.length > 1
+    ? [{ type:'Feature', geometry:{ type:'LineString', coordinates: stops.map(ll) } }] : [] });
+  stops.forEach((p, i) => {
+    const m = new maplibregl.Marker({ element: el(`<div class="num">${i+1}</div>`), offset:[0,-24] }).setLngLat(ll(p)).addTo(map);
+    marks.set('stop' + i, m);
+  });
 }
 
 // ---------- UI ----------
 const inPlan = p => S.plan[S.day].some(s => s.id === p.id);
 const dayLabel = () => DAYS.find(d => d.k === S.day).label;
-const addBtn = p => inPlan(p) ? `<span class="btn">✓ ${dayLabel()}</span>` : `<button class="btn pri" data-add="${p.id}">+ ${dayLabel()}</button>`;
+const addLabel = p => inPlan(p) ? `<span class="btn y">✓ ${dayLabel()}</span>` : `<button class="btn pri" data-add="${p.id}">+ ${dayLabel()}</button>`;
+const addDot = p => inPlan(p) ? `<span class="add on">✓</span>` : `<button class="add" data-add="${p.id}" aria-label="Add to ${dayLabel()}">+</button>`;
 
-const row = (p, from) => `<div class="row" data-focus="${p.id}">
-  <div class="dot" style="background:${CATS[p.cat].color}22">${CATS[p.cat].icon}</div>
-  <div class="t"><div class="n">${esc(p.name)}</div><div class="s">${walk(dist(from, p))}${p.src === 'osm' ? ' · OSM' : ''}${p.note ? ' · ' + esc(p.note) : ''}</div></div>
-  ${addBtn(p)}</div>`;
+const row = (p, from, i) => `<div class="row" data-focus="${p.id}" style="animation-delay:${Math.min(i, 12) * 25}ms">
+  ${badge(p.cat)}
+  <div class="t"><div class="n">${esc(p.name)}</div><div class="s"><b>${walk(dist(from, p))}</b>${p.src === 'osm' ? ' · OSM' : ''}${p.note ? ' · ' + esc(p.note) : ''}</div></div>
+  ${addDot(p)}</div>`;
 
 const nearest = (from, n, exclude = []) => visible()
   .filter(p => p.cat !== 'base' && !exclude.some(e => e.id === p.id))
   .map(p => [dist(from, p), p]).sort((a, b) => a[0] - b[0]).slice(0, n).map(x => x[1]);
 
-function renderChips() {
-  document.getElementById('chips').innerHTML = Object.entries(CATS).map(([k, c]) =>
-    `<button class="chip ${S.cats.has(k) ? 'on' : ''}" data-cat="${k}">${c.icon} ${c.label}</button>`).join('');
-}
+const renderChips = () => document.getElementById('chips').innerHTML = Object.entries(CATS).map(([k, c]) =>
+  `<button class="chip ${S.cats.has(k) ? '' : 'off'}" data-cat="${k}">${badge(k)}${c.label}</button>`).join('');
 
 function renderNear() {
   const from = origin(), list = nearest(from, 60);
-  return `<div class="hint">Sorted from ${S.me ? 'your location' : 'the venue (no GPS fix yet)'} · ${list.length} places</div>` +
-    (list.map(p => row(p, from)).join('') || '<div class="empty">Turn on a category above.</div>');
+  return `<div class="kicker">From ${S.me ? 'your location' : 'the venue'} · ${list.length} places</div>` +
+    (list.map((p, i) => row(p, from, i)).join('') || '<div class="empty">Turn on a line above.</div>');
 }
 
 function renderPlan() {
   const d = DAYS.find(x => x.k === S.day), stops = S.plan[S.day];
-  let h = `<div class="days">${DAYS.map(x => `<button class="chip ${x.k === S.day ? 'on' : ''}" data-day="${x.k}">${x.label} <small>(${S.plan[x.k].length})</small></button>`).join('')}</div>
+  let h = `<div class="days">${DAYS.map(x => `<button class="day ${x.k === S.day ? 'on' : ''}" data-day="${x.k}">${x.label}<sup>${S.plan[x.k].length}</sup></button>`).join('')}</div>
     <div class="hint">${d.hint}</div>`;
-  if (!stops.length) h += `<div class="empty">No stops yet. Load the suggested route or add places from Nearby.</div>`;
   let total = 0;
-  stops.forEach((p, i) => {
-    if (i) { const m = dist(stops[i-1], p); total += m; h += `<div class="leg">↓ ${walk(m)}</div>`; }
-    h += `<div class="row" data-focus="${p.id}"><div class="dot" style="background:${CATS[p.cat].color}22">${i+1}</div>
-      <div class="t"><div class="n">${esc(p.name)}</div><div class="s">${CATS[p.cat].icon} ${CATS[p.cat].label}</div></div>
-      <button class="btn" data-mv="${i},-1">↑</button><button class="btn" data-mv="${i},1">↓</button><button class="btn" data-rm="${i}">✕</button></div>`;
-  });
-  h += `<div class="acts">
-    <button class="btn" data-suggest>Load suggested</button>
-    ${stops.length > 1 ? `<a class="btn pri" href="${routeLink(stops)}" target="_blank" rel="noopener">Walk it in Google Maps</a>` : ''}
-    ${stops.length ? `<button class="btn" data-clear>Clear day</button>` : ''}</div>`;
-  if (stops.length > 1) h += `<div class="hint">Total ≈ ${(total/1000).toFixed(1)} km between stops</div>`;
+  if (stops.length) {
+    h += '<div class="line">';
+    stops.forEach((p, i) => {
+      if (i) { const m = dist(stops[i-1], p); total += m; h += `<div class="leg">${walk(m)}</div>`; }
+      h += `<div class="stn" data-focus="${p.id}" style="animation-delay:${i * 40}ms"><div class="o">${i+1}</div>
+        <div class="t"><div class="n">${esc(p.name)}</div><div class="s">${badge(p.cat)} ${CATS[p.cat].label}</div></div>
+        <div class="ctl"><button data-mv="${i},-1" aria-label="Move up">↑</button><button data-mv="${i},1" aria-label="Move down">↓</button><button data-rm="${i}" aria-label="Remove">✕</button></div></div>`;
+    });
+    h += '</div>';
+  } else h += `<div class="empty">No stops yet. Load the suggested line or add places with +.</div>`;
+  h += `<div class="acts"><button class="btn y" data-suggest>Load suggested</button>
+    ${stops.length > 1 ? `<a class="btn pri" href="${routeLink(stops)}" target="_blank" rel="noopener">Walk it ↗</a>` : ''}
+    ${stops.length ? `<button class="btn" data-clear>Clear</button>` : ''}</div>`;
+  if (stops.length > 1) h += `<div class="hint">≈ ${(total/1000).toFixed(1)} km between stops</div>`;
   const last = stops[stops.length - 1] || origin();
-  h += `<h4>Next from ${stops.length ? esc(last.name) : (S.me ? 'you' : 'the venue')}</h4>` +
-       nearest(last, 8, stops).map(p => row(p, last)).join('');
+  h += `<div class="kicker">Next from ${stops.length ? esc(last.name) : (S.me ? 'you' : 'the venue')}</div>` +
+       nearest(last, 8, stops).map((p, i) => row(p, last, i)).join('');
   return h;
 }
 
 function render() {
   renderChips();
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === S.tab));
+  document.querySelectorAll('[data-tab]').forEach(t => t.classList.toggle('on', t.dataset.tab === S.tab));
   document.getElementById('body').innerHTML = S.tab === 'near' ? renderNear() : renderPlan();
   renderMap();
   save();
 }
 const status = t => document.getElementById('status').textContent = t;
 
-// ---------- Live search (OpenStreetMap / Overpass) ----------
+// ---------- Live scan (OpenStreetMap / Overpass) ----------
 async function liveSearch() {
   const c = map.getCenter(), r = 900;
   const sels = [...S.cats].flatMap(k => CATS[k].osm.map(s => [k, s]));
-  if (!sels.length) return status('Choose a category first');
-  status('Searching OSM…');
+  if (!sels.length) return status('Turn on a line first');
+  status('Scanning OpenStreetMap…');
   const q = `[out:json][timeout:20];(${sels.map(([, s]) => `nwr${s}["name"](around:${r},${c.lat},${c.lng});`).join('')});out center 150;`;
   try {
     const res = await fetch('https://overpass-api.de/api/interpreter', { method:'POST', body:'data=' + encodeURIComponent(q) });
@@ -278,35 +311,37 @@ async function liveSearch() {
     })).filter(p => p.cat && !known.has(p.name.toLowerCase()));
     const ids = new Set(S.live.map(p => p.id));
     S.live.push(...found.filter(p => !ids.has(p.id)));
-    status(`${found.length} live results`);
+    status(`${found.length} found nearby`);
     render();
-  } catch (e) { status('OSM search failed: ' + e.message); }
+  } catch (e) { status('Scan failed: ' + e.message); }
 }
 
 // ---------- Geolocation ----------
 function locate(fly) {
-  if (!navigator.geolocation) return status('No GPS in this browser');
+  const gps = document.getElementById('gps');
+  if (!navigator.geolocation) return gps.querySelector('span').textContent = 'No GPS';
   navigator.geolocation.getCurrentPosition(pos => {
     S.me = { id:'me', cat:'base', name:'You', lat: pos.coords.latitude, lng: pos.coords.longitude };
-    if (!meMarker) meMarker = L.marker([S.me.lat, S.me.lng], { icon: L.divIcon({ className:'', iconSize:[16,16], html:'<div class="me"></div>' }), zIndexOffset:1000 }).addTo(map);
-    meMarker.setLatLng([S.me.lat, S.me.lng]);
-    if (fly) map.flyTo([S.me.lat, S.me.lng], 16);
-    status(`GPS ±${Math.round(pos.coords.accuracy)} m`);
+    meMarker ??= new maplibregl.Marker({ element: el('<div class="me"></div>') }).setLngLat(ll(S.me)).addTo(map);
+    meMarker.setLngLat(ll(S.me));
+    if (fly) map.flyTo({ center: ll(S.me), zoom:15.5 });
+    gps.classList.add('live'); gps.querySelector('span').textContent = `±${Math.round(pos.coords.accuracy)} m`;
     render();
-  }, err => status('GPS: ' + err.message), { enableHighAccuracy:true, timeout:15000, maximumAge:30000 });
+  }, err => { gps.classList.remove('live'); gps.querySelector('span').textContent = err.code === 1 ? 'GPS denied' : 'No fix'; },
+  { enableHighAccuracy:true, timeout:15000, maximumAge:30000 });
 }
 
 // ---------- Events ----------
-const focus = p => { map.flyTo([p.lat, p.lng], 17); layers.places.eachLayer(m => { const ll = m.getLatLng(); if (ll.lat === p.lat && ll.lng === p.lng) m.openPopup(); }); };
-const add = p => { if (!inPlan(p)) S.plan[S.day].push(p); map.closePopup(); render(); };
+const focus = p => { map.flyTo({ center: ll(p), zoom:16.5 }); const m = marks.get(p.id); if (m && !m.getPopup().isOpen()) m.togglePopup(); };
+const add = p => { if (!inPlan(p)) S.plan[S.day].push(p); marks.forEach(m => m.getPopup()?.remove()); render(); };
 
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-cat],[data-tab],[data-day],[data-add],[data-mv],[data-rm],[data-suggest],[data-clear],[data-focus],.grip');
+  const t = e.target.closest('[data-cat],[data-tab],[data-day],[data-add],[data-mv],[data-rm],[data-suggest],[data-clear],[data-focus],[data-grip]');
   if (!t) return;
   const ds = t.dataset, stops = S.plan[S.day];
-  if (t.classList.contains('grip')) return document.getElementById('sheet').classList.toggle('min');
+  if ('grip' in ds) return document.body.classList.toggle('min');
   if (ds.cat) { S.cats.has(ds.cat) ? S.cats.delete(ds.cat) : S.cats.add(ds.cat); }
-  else if (ds.tab) { S.tab = ds.tab; document.getElementById('sheet').classList.remove('min'); }
+  else if (ds.tab) { S.tab = ds.tab; document.body.classList.remove('min'); }
   else if (ds.day) S.day = ds.day;
   else if (ds.add) return add(byId(ds.add));
   else if (ds.mv) { const [i, d] = ds.mv.split(',').map(Number), j = i + d; if (j < 0 || j >= stops.length) return; [stops[i], stops[j]] = [stops[j], stops[i]]; }
