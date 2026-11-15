@@ -3,144 +3,169 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#141414">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#eef1f4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d0f13" media="(prefers-color-scheme: dark)">
 <title>Berlin · MLcon week</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <style>
   :root {
-    --paper:#f3f0e8; --ink:#141414; --yellow:#f0d722; --rule:#ddd8cb; --mute:#6d6a63;
-    --display:'Barlow Condensed', sans-serif; --body:'Barlow', sans-serif;
-    --sheet:46vh; --target:24px;
-    --safe-l:max(10px, env(safe-area-inset-left, 0px)); --safe-r:max(10px, env(safe-area-inset-right, 0px));
+    color-scheme: light dark;
+    --bg:     light-dark(#eef1f4, #0d0f13);
+    --glass:  light-dark(rgb(255 255 255 / .74), rgb(24 27 33 / .72));
+    --solid:  light-dark(#ffffff, #1a1d23);
+    --ink:    light-dark(#15181d, #f2f3f5);
+    --mute:   light-dark(#5b626c, #9ba2ac);
+    --rule:   light-dark(#dde1e6, #2b2f37);
+    --accent: light-dark(#2f5bd3, #86a2ff);
+    --on-accent: light-dark(#ffffff, #0d0f13);
+    --hot:    #ff6a3d;
+    --hot-bg: light-dark(#fff1ea, #3a1f15);
+    --hot-ink:light-dark(#b23a0c, #ffb59a);
+    --shadow: light-dark(0 10px 40px rgb(21 24 29 / .14), 0 10px 40px rgb(0 0 0 / .5));
+    --serif: 'Instrument Serif', serif; --sans: 'Instrument Sans', sans-serif;
+    --spring: cubic-bezier(.2, .9, .25, 1.12);
+    --target: 24px;
+    --safe-l: max(10px, env(safe-area-inset-left, 0px)); --safe-r: max(10px, env(safe-area-inset-right, 0px));
+    --sheet: 50dvh;
   }
-  @media (pointer: coarse) { :root { --target:44px; } }
-  :where(button, a.btn) { min-block-size:var(--target); min-inline-size:var(--target); }
-  h1, h2, h3 { text-wrap:balance; }
-  ul, ol { list-style:none; margin:0; padding:0; }
-  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-  html,body { margin:0; height:100%; background:var(--paper); color:var(--ink); font:15px/1.35 var(--body); }
-  button { font:inherit; color:inherit; cursor:pointer; }
-  #map { position:fixed; inset:0; }
+  @media (pointer: coarse) { :root { --target: 44px; } }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 15px/1.4 var(--sans); }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  :where(button, a.btn) { min-block-size: var(--target); min-inline-size: var(--target); }
+  h1, h2, h3 { text-wrap: balance; }
+  ul, ol { list-style: none; margin: 0; padding: 0; }
+  .glass { background: var(--glass); -webkit-backdrop-filter: blur(20px) saturate(1.6); backdrop-filter: blur(20px) saturate(1.6); box-shadow: var(--shadow); }
+  svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 
-  /* ---- header: station sign ---- */
-  .top { position:fixed; top:0; left:0; right:0; z-index:10; padding:calc(env(safe-area-inset-top, 0px) + 10px) var(--safe-r) 0 var(--safe-l); pointer-events:none; }
-  .sign { pointer-events:auto; display:flex; align-items:center; gap:10px; background:var(--ink); color:#fff; border-radius:12px;
-          padding:8px 12px 8px 8px; box-shadow:0 6px 20px #0003; }
-  .sign .u { width:34px; height:34px; border-radius:7px; background:var(--yellow); color:var(--ink); display:grid; place-items:center;
-             font:800 24px/1 var(--display); }
-  .sign h1 { margin:0; font:700 21px/1 var(--display); letter-spacing:.04em; text-transform:uppercase; }
-  .sign small { display:block; font:500 12px/1.2 var(--body); color:#bdb9ae; letter-spacing:.02em; margin-top:2px; }
-  .sign .gps { margin-left:auto; font:600 12px/1 var(--display); letter-spacing:.06em; text-transform:uppercase; color:#bdb9ae;
-               display:flex; align-items:center; gap:6px; text-align:right; }
-  .sign .gps i { width:8px; height:8px; border-radius:50%; background:#777; flex:none; }
-  .sign .gps.live i { background:#38d26b; box-shadow:0 0 0 3px #38d26b33; }
-  .chips { pointer-events:auto; display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; padding:8px 0 10px; }
-  .chips::-webkit-scrollbar { display:none; }
-  .chip { flex:none; display:flex; align-items:center; gap:7px; border:0; background:#fff; border-radius:8px; padding:4px 12px 4px 8px;
-          font:600 14px/1 var(--body); box-shadow:0 2px 8px #0002; transition:opacity .15s, transform .15s; }
-  .chip:active { transform:scale(.96); }
-  .chip[aria-pressed="false"] { opacity:.5; box-shadow:none; }
-  .badge { width:26px; height:22px; border-radius:5px; display:grid; place-items:center; color:#fff; flex:none;
-           font:700 13px/1 var(--display); letter-spacing:.02em; }
+  #map { position: fixed; inset: 0; }
+  @media (prefers-color-scheme: dark) { #map canvas { filter: invert(.92) hue-rotate(180deg) brightness(.85) contrast(.95); } }
 
-  /* ---- floating actions ---- */
-  .fab { position:fixed; right:var(--safe-r); z-index:10; display:flex; flex-direction:column; gap:8px; bottom:calc(var(--sheet) + 12px); transition:bottom .25s; }
-  .fab button { border:0; background:var(--ink); color:#fff; border-radius:10px; padding:10px 13px; font:700 14px/1 var(--display);
-                letter-spacing:.06em; text-transform:uppercase; box-shadow:0 4px 14px #0004; }
-  .fab button.y { background:var(--yellow); color:var(--ink); }
+  /* ---- header ---- */
+  .top { position: fixed; z-index: 10; top: 0; left: 0; right: 0; padding: calc(env(safe-area-inset-top, 0px) + 12px) var(--safe-r) 0 var(--safe-l);
+         display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+  .top > * { pointer-events: auto; }
+  .head { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 22px; animation: drop .6s var(--spring) both; }
+  .head small { display: block; font: 600 11px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+  .head h1 { margin: 4px 0 0; font: 400 30px/1 var(--serif); letter-spacing: -.01em; }
+  .head h1 i { color: var(--accent); }
+  .gps { margin-left: auto; display: flex; align-items: center; gap: 6px; padding: 7px 11px; border-radius: 999px; background: var(--solid); font: 600 12px/1 var(--sans); color: var(--mute); }
+  .gps i { width: 7px; height: 7px; border-radius: 50%; background: var(--mute); }
+  .gps.live { color: light-dark(#1d6b3a, #7fe0a2); } .gps.live i { background: #23a352; box-shadow: 0 0 0 4px #23a35233; }
+  .chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 2px 2px 8px; margin: 0 -2px; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex: none; display: flex; align-items: center; gap: 7px; border: 0; border-radius: 999px; padding: 0 14px 0 10px; font: 600 13px/1 var(--sans);
+          background: var(--glass); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); box-shadow: 0 2px 10px rgb(0 0 0 / .08);
+          transition: background .25s, color .25s, transform .3s var(--spring); animation: drop .6s var(--spring) both; }
+  .chip:active { transform: scale(.94); }
+  .chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+  .chip .d { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* ---- floating buttons ---- */
+  .fab { position: fixed; z-index: 10; right: var(--safe-r); bottom: calc(var(--sheet) + 22px); display: flex; flex-direction: column; gap: 10px; transition: bottom .45s var(--spring); }
+  .fab button { width: 48px; height: 48px; border: 0; border-radius: 50%; display: grid; place-items: center; transition: transform .3s var(--spring); }
+  .fab button:active { transform: scale(.9); }
+  .fab button.pri { background: var(--accent); color: var(--on-accent); }
 
   /* ---- sheet ---- */
-  .sheet { position:fixed; left:0; right:0; bottom:0; z-index:11; height:var(--sheet); background:var(--paper); border-top:3px solid var(--ink);
-           border-radius:18px 18px 0 0; display:flex; flex-direction:column; transition:height .25s; padding:0 var(--safe-r) env(safe-area-inset-bottom, 0px) var(--safe-l);
-           box-shadow:0 -10px 30px #0002; }
-  body.min { --sheet:calc(62px + env(safe-area-inset-bottom)); }
-  .grip { position:absolute; top:-3px; left:50%; transform:translateX(-50%); width:72px; min-block-size:30px; border:0; background:none; }
-  .grip::after { content:''; position:absolute; top:9px; left:12px; right:12px; height:4px; border-radius:2px; background:var(--rule); }
-  .bar { display:flex; align-items:center; gap:10px; padding:20px 4px 10px; }
-  .seg { display:flex; background:#e6e2d7; border-radius:9px; padding:3px; }
-  .seg button { border:0; background:none; padding:7px 16px; border-radius:7px; font:700 15px/1 var(--display); letter-spacing:.06em; text-transform:uppercase; color:var(--mute); }
-  .seg button[aria-pressed="true"] { background:var(--ink); color:#fff; }
-  .status { margin-left:auto; font-size:12px; color:var(--mute); text-align:right; max-width:42%; }
-  .body { overflow-y:auto; flex:1; padding:0 4px 16px; overscroll-behavior:contain; }
-  .kicker { font:700 12px/1.2 var(--display); letter-spacing:.12em; text-transform:uppercase; color:var(--mute); margin:12px 0 4px; }
+  .sheet { position: fixed; z-index: 11; left: var(--safe-l); right: var(--safe-r); bottom: max(10px, env(safe-area-inset-bottom, 0px)); height: var(--sheet);
+           border-radius: 30px; display: flex; flex-direction: column; overflow: hidden; transition: height .45s var(--spring); }
+  .sheet.dragging, .sheet.dragging ~ .fab { transition: none; }
+  .grip { border: 0; background: none; align-self: center; width: 90px; padding: 0; touch-action: none; display: grid; place-items: center; cursor: grab; }
+  .grip::after { content: ''; width: 42px; height: 5px; border-radius: 3px; background: var(--rule); }
+  .bar { display: flex; align-items: center; gap: 10px; padding: 0 16px 10px; }
+  .seg { display: flex; padding: 3px; border-radius: 999px; background: light-dark(rgb(21 24 29 / .06), rgb(255 255 255 / .06)); }
+  .seg button { border: 0; background: none; border-radius: 999px; padding: 0 16px; font: 600 14px/1 var(--sans); color: var(--mute); transition: background .25s, color .25s; }
+  .seg button[aria-pressed="true"] { background: var(--solid); color: var(--ink); box-shadow: 0 1px 6px rgb(0 0 0 / .12); }
+  .status { margin-left: auto; font-size: 12px; color: var(--mute); text-align: right; }
+  .body { flex: 1; overflow-y: auto; padding: 0 16px 20px; overscroll-behavior: contain; }
+  .kicker { margin: 14px 0 4px; font: 600 11px/1.3 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
 
-  .row { display:flex; gap:11px; align-items:center; padding:10px 0; border-bottom:1px solid var(--rule); animation:up .35s both; }
-  .t { flex:1; min-width:0; border:0; background:none; padding:0; text-align:left; }
-  .row .n { font-weight:600; }
-  .row .s { font-size:13px; color:var(--mute); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-  .row .s b { color:var(--ink); font:700 13px/1 var(--display); letter-spacing:.04em; }
-  .add { flex:none; width:38px; height:38px; border-radius:50%; border:2px solid var(--ink); background:#fff; font:700 20px/1 var(--display); display:grid; place-items:center; }
-  .add.on { background:var(--yellow); }
-  @keyframes up { from { opacity:0; transform:translateY(6px); } }
+  .row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--rule); animation: rise .5s var(--spring) both; }
+  .ico { width: 40px; height: 40px; border-radius: 13px; display: grid; place-items: center; flex: none; }
+  .t { flex: 1; min-width: 0; border: 0; background: none; padding: 0; text-align: left; display: flex; flex-direction: column; gap: 2px; }
+  .t .n { font: 600 15px/1.25 var(--sans); }
+  .t .s { font-size: 12.5px; color: var(--mute); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .add { flex: none; width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid var(--rule); background: var(--solid); display: grid; place-items: center; transition: transform .3s var(--spring), background .2s; }
+  .add:active { transform: scale(.88); }
+  .add.on { background: var(--accent); color: var(--on-accent); border-color: transparent; }
 
-  /* ---- plan as a U-Bahn line ---- */
-  .days { display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; padding-bottom:4px; }
-  .day { flex:none; border:2px solid var(--ink); background:#fff; border-radius:8px; padding:6px 10px; font:700 15px/1 var(--display); letter-spacing:.04em; text-transform:uppercase; }
-  .day[aria-pressed="true"] { background:var(--ink); color:#fff; }
-  .day sup { font-size:11px; color:var(--yellow); margin-left:2px; }
-  .day[aria-pressed="false"] sup { color:var(--mute); }
-  .hint { font-size:13px; color:var(--mute); margin:8px 0 4px; }
-  .line { position:relative; margin:10px 0 4px; }
-  .line::before { content:''; position:absolute; left:13px; top:14px; bottom:14px; width:8px; background:var(--yellow); border:2px solid var(--ink); border-radius:4px; }
-  .stn { position:relative; animation:up .35s both; }
-  .stn .r { display:flex; align-items:center; gap:12px; padding:6px 0; }
-  .stn .o { flex:none; width:34px; height:34px; border-radius:50%; background:#fff; border:3px solid var(--ink); display:grid; place-items:center;
-            font:800 15px/1 var(--display); z-index:1; }
-  .stn .t { flex:1; min-width:0; }
-  .stn .n { font:700 17px/1.1 var(--display); letter-spacing:.02em; text-transform:uppercase; }
-  .stn .s { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--mute); margin-top:3px; }
-  .stn .s .badge { width:22px; height:16px; font-size:11px; }
-  .ctl { display:flex; gap:2px; }
-  .ctl button { border:0; background:none; width:32px; height:32px; border-radius:6px; font-size:15px; color:var(--mute); }
-  .ctl button:active { background:#e6e2d7; }
-  .leg { padding:1px 0 1px 46px; font:600 12px/1.6 var(--display); letter-spacing:.08em; text-transform:uppercase; color:var(--mute); }
-  .acts { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 4px; }
-  .btn { border:2px solid var(--ink); background:#fff; border-radius:9px; padding:8px 12px; font:700 14px/1 var(--display); letter-spacing:.06em;
-         text-transform:uppercase; text-decoration:none; color:var(--ink); display:inline-flex; align-items:center; gap:6px; }
-  .btn.pri { background:var(--ink); color:#fff; }
-  .btn.y { background:var(--yellow); }
-  .empty { color:var(--mute); padding:14px 0; }
+  /* ---- plan timeline ---- */
+  .days { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+  .day { flex: none; border: 1.5px solid var(--rule); background: none; border-radius: 999px; padding: 0 14px; font: 600 13px/1 var(--sans); color: var(--mute); transition: all .25s; }
+  .day[aria-pressed="true"] { background: var(--accent); border-color: transparent; color: var(--on-accent); }
+  .day sup { font-size: 10px; margin-left: 3px; opacity: .8; }
+  .dayhead { margin: 14px 0 2px; font: 400 26px/1.05 var(--serif); }
+  .dayhead i { color: var(--accent); }
+  .hint { margin: 2px 0 10px; font-size: 13px; color: var(--mute); }
+  .tl { display: flex; flex-direction: column; }
+  .stop { display: grid; grid-template-columns: 50px 1fr; column-gap: 10px; animation: rise .5s var(--spring) both; }
+  .stop .tm { padding-top: 12px; font: 600 13px/1 var(--sans); color: var(--mute); font-variant-numeric: tabular-nums; }
+  .stop .card { display: flex; align-items: center; gap: 10px; padding: 8px 0 8px 14px; border-left: 2px solid var(--rule); min-width: 0; }
+  .stop.gig .tm { color: var(--hot-ink); }
+  .stop.gig .card { margin: 2px 0; padding: 12px; border: 0; border-radius: 18px; background: var(--hot-bg); }
+  .stop.gig .t .n { font: 400 22px/1.05 var(--serif); }
+  .stop.gig .t .s { color: var(--hot-ink); }
+  .leg { padding: 0 0 0 14px; border-left: 2px dotted var(--rule); font: 500 12px/2.2 var(--sans); color: var(--mute); }
+  .ctl { display: flex; }
+  .ctl button { border: 0; background: none; width: 32px; height: 32px; border-radius: 10px; color: var(--mute); display: grid; place-items: center; }
+  .ctl button:active { background: var(--rule); }
+  .alts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 0 6px 14px; font-size: 12px; color: var(--mute); }
+  .alts button { border: 1.5px solid var(--rule); background: var(--solid); border-radius: 999px; padding: 0 12px; font: 600 12.5px/1 var(--sans); min-block-size: 34px; }
+  .acts { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; }
+  .btn { display: inline-flex; align-items: center; gap: 7px; border: 1.5px solid var(--rule); background: var(--solid); border-radius: 999px; padding: 0 16px;
+         font: 600 14px/1 var(--sans); color: var(--ink); text-decoration: none; transition: transform .3s var(--spring); }
+  .btn:active { transform: scale(.95); }
+  .btn.pri { background: var(--accent); color: var(--on-accent); border-color: transparent; }
+  .empty { color: var(--mute); padding: 12px 0; }
 
   /* ---- map marks ---- */
-  .pin { width:28px; height:28px; border-radius:50%; display:grid; place-items:center; font-size:14px; border:2.5px solid #fff; box-shadow:0 2px 6px #0005; cursor:pointer; }
-  .pin.osm { width:13px; height:13px; border-width:2px; font-size:0; }
-  .num { width:24px; height:24px; border-radius:50%; background:#fff; border:3px solid var(--ink); display:grid; place-items:center; font:800 13px/1 var(--display); pointer-events:none; }
-  .me { width:18px; height:18px; border-radius:50%; background:#2f6fe4; border:3px solid #fff; box-shadow:0 0 0 0 #2f6fe480; animation:pulse 2s infinite; }
-  @keyframes pulse { 70% { box-shadow:0 0 0 14px #2f6fe400; } 100% { box-shadow:0 0 0 0 #2f6fe400; } }
-  .maplibregl-popup-content { background:var(--paper); border:2px solid var(--ink); border-radius:12px; padding:12px 14px; box-shadow:0 8px 24px #0003; font-family:var(--body); min-width:210px; }
-  .maplibregl-popup-tip { display:none; }
-  .maplibregl-popup-close-button { font-size:20px; padding:2px 8px; }
-  .pop h3 { margin:0 24px 4px 0; font:700 19px/1.1 var(--display); text-transform:uppercase; letter-spacing:.02em; }
-  .pop .m { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--mute); }
-  .pop p { margin:8px 0 10px; font-size:14px; }
-  .pop .acts { margin:0; }
-  .maplibregl-ctrl-attrib { font-size:10px; }
-  :focus-visible { outline:3px solid #2f6fe4; outline-offset:2px; }
-  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation:none !important; transition:none !important; } }
+  .pin { width: 32px; height: 32px; border-radius: 50%; background: var(--solid); display: grid; place-items: center; box-shadow: 0 3px 10px rgb(0 0 0 / .25); cursor: pointer;
+         border: 2px solid currentColor; animation: pop .5s var(--spring) both; }
+  .pin svg.i { width: 16px; height: 16px; }
+  .pin.osm { width: 12px; height: 12px; border: 2px solid var(--solid); background: currentColor; }
+  .pin.osm svg { display: none; }
+  .gigpin { display: flex; align-items: center; gap: 7px; padding: 5px 12px 5px 5px; border-radius: 999px; background: #15181d; color: #fff; font: 600 12.5px/1 var(--sans);
+            box-shadow: 0 6px 18px rgb(0 0 0 / .35); white-space: nowrap; cursor: pointer; animation: pop .5s var(--spring) both; }
+  .gigpin .b { width: 26px; height: 26px; border-radius: 50%; background: var(--hot); display: grid; place-items: center; }
+  .gigpin svg.i { width: 14px; height: 14px; stroke: #fff; }
+  .num { width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; font: 700 11px/1 var(--sans);
+         border: 2px solid var(--solid); pointer-events: none; }
+  .me { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); border: 3px solid #fff; animation: pulse 2.2s infinite; }
+  .maplibregl-popup-content { background: var(--glass); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); color: var(--ink); border-radius: 20px; padding: 14px 16px;
+                              box-shadow: var(--shadow); font-family: var(--sans); min-width: 230px; animation: pop .35s var(--spring) both; }
+  .maplibregl-popup-tip { display: none; }
+  .maplibregl-popup-close-button { font-size: 20px; padding: 4px 10px; color: var(--mute); }
+  .pop h3 { margin: 0 26px 4px 0; font: 400 24px/1.05 var(--serif); }
+  .pop .m { font-size: 12px; color: var(--mute); }
+  .pop p { margin: 8px 0 12px; font-size: 14px; }
+  .pop .acts { margin: 0; }
+  .maplibregl-ctrl-attrib { font-size: 10px; }
+
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+  @keyframes drop { from { opacity: 0; transform: translateY(-12px); } }
+  @keyframes pop  { from { opacity: 0; transform: scale(.6); } }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 50%, transparent); } 80%, 100% { box-shadow: 0 0 0 16px transparent; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
 <div id="map"></div>
 
 <header class="top">
-  <div class="sign">
-    <div class="u" aria-hidden="true">U</div>
-    <div><h1>Berlin</h1><small>MLcon week · Nov 17–20</small></div>
+  <div class="head glass">
+    <div><small>MLcon week · Berlin</small><h1 id="title">Berlin, <i>around you</i></h1></div>
     <div class="gps" id="gps" role="status"><i aria-hidden="true"></i><span>No fix</span></div>
   </div>
   <nav class="chips" id="chips" aria-label="Categories"></nav>
 </header>
 
-<div class="fab">
-  <button id="btnHotel">⌂ Hotel</button>
-  <button id="btnMe">◎ Me</button>
-  <button id="btnLive" class="y">Scan here</button>
-</div>
-
-<main class="sheet" id="sheet">
-  <button class="grip" data-grip aria-label="Collapse panel" aria-expanded="true"></button>
+<main class="sheet glass" id="sheet">
+  <button class="grip" data-grip aria-label="Resize panel" aria-expanded="true"></button>
   <div class="bar">
     <div class="seg">
       <button data-tab="near" aria-pressed="true">Nearby</button>
@@ -151,20 +176,46 @@
   <div class="body" id="body"></div>
 </main>
 
+<div class="fab">
+  <button id="btnHotel" class="glass" aria-label="Centre on hotel"></button>
+  <button id="btnMe" class="glass" aria-label="Centre on me"></button>
+  <button id="btnLive" class="pri" aria-label="Scan this area for places"></button>
+</div>
+
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="places.js"></script>
 <script>
-// ---------- Categories (styled as Berlin U-Bahn lines) ----------
-const CATS = {
-  base:   { code:'S',  label:'Base',       icon:'🏨', color:'#141414', osm:[] },
-  food:   { code:'U2', label:'Food',       icon:'🍜', color:'#da421e', osm:['["amenity"~"^(restaurant|fast_food)$"]'] },
-  coffee: { code:'U5', label:'Coffee',     icon:'☕', color:'#7e5330', osm:['["amenity"="cafe"]'] },
-  pubs:   { code:'U8', label:'Pubs & bars',icon:'🍺', color:'#224f86', osm:['["amenity"~"^(pub|bar|biergarten)$"]'] },
-  music:  { code:'U6', label:'Live music', icon:'🎷', color:'#8c6dab', osm:['["amenity"~"^(music_venue|nightclub)$"]'] },
-  sights: { code:'U3', label:'Sights',     icon:'🏛️', color:'#16683d', osm:['["tourism"~"^(attraction|museum|gallery|viewpoint)$"]'] },
-  needs:  { code:'U1', label:'Essentials', icon:'🧴', color:'#7dad4c', osm:['["amenity"~"^(pharmacy|atm)$"]','["shop"="supermarket"]'] },
+// ---------- Icons (inline stroke SVG) ----------
+const ICON = {
+  base:   'M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z',
+  food:   'M7 3v18M4 3v6a3 3 0 0 0 6 0V3M17 21V3c-2 1.5-3 4-3 7h3',
+  coffee: 'M4 9h13v4a6 6 0 0 1-6 6H10a6 6 0 0 1-6-6zM17 11h1.5a2.5 2.5 0 0 1 0 5H16M8 3v2.5M12 3v2.5',
+  pubs:   'M6 8h10v11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2zM16 11h2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-2M6 8a3 3 0 0 1 5-2.2A3 3 0 0 1 16 8',
+  music:  'M9 18V5l12-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM21 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0z',
+  sights: 'M3 21h18M5 21V10M19 21V10M9.5 21V10M14.5 21V10M2 10l10-6 10 6z',
+  needs:  'M6 7h12l-1 14H7zM9 7a3 3 0 0 1 6 0',
+  me:     'M21 3 3 10.5l7.5 3 3 7.5z',
+  scan:   'M3 7V4h3M21 7V4h-3M3 17v3h3M21 17v3h-3M8 12a4 4 0 1 0 8 0 4 4 0 0 0-8 0',
+  up: 'M12 19V5M5 12l7-7 7 7', down: 'M12 5v14M5 12l7 7 7-7', x: 'M6 6l12 12M18 6 6 18', plus: 'M12 5v14M5 12h14', check: 'M5 12.5l4.5 4.5L19 7',
+  walk: 'M13 4a1.5 1.5 0 1 0 0-.01M9 21l2-6 3 2v4M10 9l3-1 2 3 3 1M8 13l2-4',
+  ext: 'M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5',
 };
-const badge = c => `<span class="badge" aria-hidden="true" style="background:${CATS[c].color}">${CATS[c].code}</span>`;
+const svg = k => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICON[k]}"/></svg>`;
+document.getElementById('btnHotel').innerHTML = svg('base');
+document.getElementById('btnMe').innerHTML = svg('me');
+document.getElementById('btnLive').innerHTML = svg('scan');
+
+// ---------- Categories ----------
+const CATS = {
+  base:   { label:'Base',       color:'#5b626c', osm:[] },
+  music:  { label:'Live music', color:'#ff6a3d', osm:['["amenity"~"^(music_venue|nightclub)$"]'] },
+  pubs:   { label:'Pubs & bars',color:'#c98a00', osm:['["amenity"~"^(pub|bar|biergarten)$"]'] },
+  food:   { label:'Food',       color:'#e0457b', osm:['["amenity"~"^(restaurant|fast_food)$"]'] },
+  coffee: { label:'Coffee',     color:'#9a6b3f', osm:['["amenity"="cafe"]'] },
+  sights: { label:'Sights',     color:'#2f9e8f', osm:['["tourism"~"^(attraction|museum|gallery|viewpoint)$"]'] },
+  needs:  { label:'Essentials', color:'#6b7bd6', osm:['["amenity"~"^(pharmacy|atm)$"]','["shop"="supermarket"]'] },
+};
+const ico = c => `<span class="ico" aria-hidden="true" style="background:color-mix(in srgb, ${CATS[c].color} 16%, transparent);color:${CATS[c].color}">${svg(c)}</span>`;
 
 // ---------- State ----------
 const store = {
@@ -179,6 +230,7 @@ const S = {
 };
 const save = () => { store.set('cats', [...S.cats]); store.set('plan', S.plan); store.set('day', S.day); };
 const byId = id => PICKS.find(p => p.id === id) || S.live.find(p => p.id === id) || Object.values(S.plan).flat().find(p => p.id === id);
+const stop = (id, time, alts) => ({ ...byId(id), time: time || byId(id).time || '', alts: alts || [] });
 
 // ---------- Geo helpers ----------
 const dist = (a, b) => {
@@ -187,37 +239,34 @@ const dist = (a, b) => {
   const h = Math.sin(dLa/2)**2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(dLo/2)**2;
   return 2 * R * Math.asin(Math.sqrt(h));
 };
-const walk = m => m > 4000 ? `${(m/1000).toFixed(1)} km · transit` : `${Math.max(1, Math.round(m * 1.25 / 80))} min walk`;
+const walk = m => m > 3500 ? `${(m/1000).toFixed(1)} km · take transit` : `${Math.max(1, Math.round(m * 1.25 / 80))} min walk`;
 const origin = () => S.me || VENUE;
 const ll = p => [p.lng, p.lat];
 const mapsLink = p => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name + ' ' + p.lat + ',' + p.lng)}`;
 const routeLink = stops => {
   const f = p => `${p.lat},${p.lng}`, [o, ...rest] = stops, d = rest.pop();
-  return `https://www.google.com/maps/dir/?api=1&travelmode=walking&origin=${f(o)}&destination=${f(d)}` +
-         (rest.length ? `&waypoints=${rest.map(f).join('|')}` : '');
+  return `https://www.google.com/maps/dir/?api=1&travelmode=walking&origin=${f(o)}&destination=${f(d)}` + (rest.length ? `&waypoints=${rest.map(f).join('|')}` : '');
 };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
 const el = html => { const d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstChild; };
 
-// ---------- Map (MapLibre + OpenFreeMap, no API key) ----------
-const map = new maplibregl.Map({
-  container:'map', style:'https://tiles.openfreemap.org/styles/positron',
-  center: ll(VENUE), zoom:14, attributionControl:{ compact:true },
-});
+// ---------- Map (MapLibre + OpenFreeMap) ----------
+const map = new maplibregl.Map({ container:'map', style:'https://tiles.openfreemap.org/styles/positron', center: ll(VENUE), zoom:14, attributionControl:{ compact:true } });
 let mapReady = false, marks = new Map(), meMarker = null;
 
 map.on('load', () => {
   map.addSource('route', { type:'geojson', data:{ type:'FeatureCollection', features:[] } });
-  map.addLayer({ id:'route-casing', type:'line', source:'route', layout:{ 'line-join':'round', 'line-cap':'round' }, paint:{ 'line-color':'#141414', 'line-width':10 } });
-  map.addLayer({ id:'route-fill', type:'line', source:'route', layout:{ 'line-join':'round', 'line-cap':'round' }, paint:{ 'line-color':'#f0d722', 'line-width':5 } });
-  mapReady = true;
-  render();
+  const layout = { 'line-join':'round', 'line-cap':'round' };
+  // Night mode inverts the map canvas with CSS, so the route keeps its light-mode colours and inverts with it.
+  map.addLayer({ id:'route-casing', type:'line', source:'route', layout, paint:{ 'line-width':9, 'line-color':'#ffffff' } });
+  map.addLayer({ id:'route-fill', type:'line', source:'route', layout, paint:{ 'line-width':4.5, 'line-color':'#2f5bd3' } });
+  mapReady = true; render();
 });
 
-const popupHtml = p => `<div class="pop"><h3>${esc(p.name)}</h3>
-  <div class="m">${badge(p.cat)} ${CATS[p.cat].label}${p.src === 'osm' ? ' · OSM' : ''} · ${walk(dist(origin(), p))}</div>
+const popupHtml = p => `<div class="pop"><h3>${esc(p.gig ? p.artist : p.name)}</h3>
+  <div class="m">${p.gig ? esc(p.venue) + ' · ' : ''}${CATS[p.cat].label}${p.src === 'osm' ? ' · OSM' : ''} · ${walk(dist(origin(), p))}</div>
   <p>${esc(p.note || '')}</p>
-  <div class="acts">${addLabel(p)}<a class="btn" href="${mapsLink(p)}" target="_blank" rel="noopener">Maps ↗</a></div></div>`;
+  <div class="acts">${addLabel(p)}<a class="btn" href="${mapsLink(p)}" target="_blank" rel="noopener">${svg('ext')}Maps</a></div></div>`;
 
 const visible = () => [...PICKS, ...S.live].filter(p => S.cats.has(p.cat));
 
@@ -225,29 +274,29 @@ function renderMap() {
   if (!mapReady) return;
   marks.forEach(m => m.remove()); marks.clear();
   visible().forEach(p => {
-    const node = el(`<div class="pin ${p.src === 'osm' ? 'osm' : ''}" style="background:${CATS[p.cat].color}">${CATS[p.cat].icon}</div>`);
-    const m = new maplibregl.Marker({ element:node }).setLngLat(ll(p))
-      .setPopup(new maplibregl.Popup({ offset:16, maxWidth:'280px' }).setHTML(popupHtml(p))).addTo(map);
+    const node = p.gig
+      ? el(`<div class="gigpin"><span class="b">${svg('music')}</span>${esc(p.artist)}${p.time ? ' · ' + p.time : ''}</div>`)
+      : el(`<div class="pin ${p.src === 'osm' ? 'osm' : ''}" style="color:${CATS[p.cat].color}">${svg(p.cat)}</div>`);
+    const m = new maplibregl.Marker({ element: node }).setLngLat(ll(p))
+      .setPopup(new maplibregl.Popup({ offset:18, maxWidth:'300px' }).setHTML(popupHtml(p))).addTo(map);
     marks.set(p.id, m);
   });
   const stops = S.plan[S.day];
-  map.getSource('route').setData({ type:'FeatureCollection', features: stops.length > 1
-    ? [{ type:'Feature', geometry:{ type:'LineString', coordinates: stops.map(ll) } }] : [] });
-  stops.forEach((p, i) => {
-    const m = new maplibregl.Marker({ element: el(`<div class="num">${i+1}</div>`), offset:[0,-24] }).setLngLat(ll(p)).addTo(map);
-    marks.set('stop' + i, m);
-  });
+  map.getSource('route').setData({ type:'FeatureCollection', features: stops.length > 1 ? [{ type:'Feature', geometry:{ type:'LineString', coordinates: stops.map(ll) } }] : [] });
+  stops.forEach((p, i) => marks.set('stop' + i, new maplibregl.Marker({ element: el(`<div class="num">${i+1}</div>`), offset:[16,-16] }).setLngLat(ll(p)).addTo(map)));
 }
 
 // ---------- UI ----------
+const day = () => DAYS.find(d => d.k === S.day);
 const inPlan = p => S.plan[S.day].some(s => s.id === p.id);
-const dayLabel = () => DAYS.find(d => d.k === S.day).label;
-const addLabel = p => inPlan(p) ? `<span class="btn y">✓ ${dayLabel()}</span>` : `<button class="btn pri" data-add="${p.id}">+ ${dayLabel()}</button>`;
-const addDot = p => inPlan(p) ? `<span class="add on" aria-label="In ${dayLabel()} plan" role="img">✓</span>` : `<button class="add" data-add="${p.id}" aria-label="Add ${esc(p.name)} to ${dayLabel()}">+</button>`;
+const addLabel = p => inPlan(p) ? `<span class="btn pri">${svg('check')}${day().label}</span>` : `<button class="btn pri" data-add="${p.id}">${svg('plus')}Add to ${day().label}</button>`;
+const addDot = p => inPlan(p) ? `<span class="add on" role="img" aria-label="In ${day().label} plan">${svg('check')}</span>`
+                              : `<button class="add" data-add="${p.id}" aria-label="Add ${esc(p.name)} to ${day().label}">${svg('plus')}</button>`;
+const delay = i => `animation-delay:${Math.min(i, 12) * 35}ms`;
+const title = p => p.gig ? p.artist : p.name;
 
-const row = (p, from, i) => `<li class="row" style="animation-delay:${Math.min(i, 12) * 25}ms">
-  ${badge(p.cat)}
-  <button class="t" data-focus="${p.id}"><span class="n">${esc(p.name)}</span><span class="s"><b>${walk(dist(from, p))}</b> · ${CATS[p.cat].label}${p.src === 'osm' ? ' · OSM' : ''}${p.note ? ' · ' + esc(p.note) : ''}</span></button>
+const row = (p, from, i) => `<li class="row" style="${delay(i)}">${ico(p.cat)}
+  <button class="t" data-focus="${p.id}"><span class="n">${esc(p.name)}</span><span class="s">${walk(dist(from, p))} · ${CATS[p.cat].label}${p.src === 'osm' ? ' · OSM' : ''}${p.note ? ' · ' + esc(p.note) : ''}</span></button>
   ${addDot(p)}</li>`;
 const rows = (list, from) => `<ul>${list.map((p, i) => row(p, from, i)).join('')}</ul>`;
 
@@ -255,43 +304,50 @@ const nearest = (from, n, exclude = []) => visible()
   .filter(p => p.cat !== 'base' && !exclude.some(e => e.id === p.id))
   .map(p => [dist(from, p), p]).sort((a, b) => a[0] - b[0]).slice(0, n).map(x => x[1]);
 
-const renderChips = () => document.getElementById('chips').innerHTML = Object.entries(CATS).map(([k, c]) =>
-  `<button class="chip" aria-pressed="${S.cats.has(k)}" data-cat="${k}">${badge(k)}${c.label}</button>`).join('');
+const renderChips = () => document.getElementById('chips').innerHTML = Object.entries(CATS).map(([k, c], i) =>
+  `<button class="chip" style="${delay(i)}" aria-pressed="${S.cats.has(k)}" data-cat="${k}"><span class="d" style="background:${c.color}" aria-hidden="true"></span>${c.label}</button>`).join('');
 
 function renderNear() {
   const from = origin(), list = nearest(from, 60);
-  return `<h2 class="kicker">From ${S.me ? 'your location' : 'the venue'} · ${list.length} places</h2>` +
-    (list.length ? rows(list, from) : '<p class="empty">Turn on a line above.</p>');
+  const gigs = visible().filter(p => p.gig && p.day === S.day);
+  return (gigs.length ? `<h2 class="kicker">Gigs on ${day().label}</h2>${rows(gigs, from)}` : '') +
+    `<h2 class="kicker">Closest to ${S.me ? 'you' : 'the venue'}</h2>` + (list.length ? rows(list, from) : '<p class="empty">Turn on a category above.</p>');
 }
 
 function renderPlan() {
-  const d = DAYS.find(x => x.k === S.day), stops = S.plan[S.day];
+  const d = day(), stops = S.plan[S.day];
+  const [wd, date] = d.label.split(' ');
   let h = `<div class="days">${DAYS.map(x => `<button class="day" aria-pressed="${x.k === S.day}" data-day="${x.k}">${x.label}<sup aria-label="${S.plan[x.k].length} stops">${S.plan[x.k].length}</sup></button>`).join('')}</div>
-    <div class="hint">${d.hint}</div>`;
+    <h2 class="dayhead">${({ Tue:'Tuesday', Wed:'Wednesday', Thu:'Thursday', Fri:'Friday' })[wd]}, <i>${date} Nov</i></h2><p class="hint">${d.hint}</p>`;
   let total = 0;
   if (stops.length) {
-    h += `<ol class="line" aria-label="${d.label} route">`;
+    h += `<ol class="tl" aria-label="${d.label} plan">`;
     stops.forEach((p, i) => {
       const leg = i ? dist(stops[i-1], p) : 0; total += leg;
-      h += `<li class="stn" style="animation-delay:${i * 40}ms">${i ? `<div class="leg">${walk(leg)}</div>` : ''}
-        <div class="r"><span class="o" aria-hidden="true">${i+1}</span>
-        <button class="t" data-focus="${p.id}"><span class="n">${esc(p.name)}</span><span class="s">${badge(p.cat)} ${CATS[p.cat].label}${p.time ? ` · <b>${p.time}</b>` : ''}</span></button>
-        <div class="ctl"><button data-mv="${i},-1" aria-label="Move ${esc(p.name)} up">↑</button><button data-mv="${i},1" aria-label="Move ${esc(p.name)} down">↓</button><button data-rm="${i}" aria-label="Remove ${esc(p.name)}">✕</button></div></div></li>`;
+      h += `<li class="stop ${p.gig ? 'gig' : ''}" style="${delay(i)}">
+        ${i ? `<span></span><span class="leg">${walk(leg)}</span>` : ''}
+        <span class="tm">${p.time || ''}</span>
+        <div class="card">${p.gig ? `<span class="ico" aria-hidden="true" style="background:var(--hot);color:#fff">${svg('music')}</span>` : ''}
+          <button class="t" data-focus="${p.id}"><span class="n">${esc(title(p))}</span><span class="s">${p.gig ? esc(p.venue) + ' · gig' : CATS[p.cat].label}</span></button>
+          <div class="ctl"><button data-mv="${i},-1" aria-label="Move ${esc(title(p))} earlier">${svg('up')}</button><button data-mv="${i},1" aria-label="Move ${esc(title(p))} later">${svg('down')}</button><button data-rm="${i}" aria-label="Remove ${esc(title(p))}">${svg('x')}</button></div>
+        </div>
+        ${p.alts?.length ? `<span></span><div class="alts">Or:${p.alts.map(a => `<button data-swap="${i},${a}">${esc(title(byId(a)))}</button>`).join('')}</div>` : ''}
+      </li>`;
     });
     h += '</ol>';
-  } else h += `<p class="empty">No stops yet. Load the suggested line or add places with +.</p>`;
-  h += `<div class="acts"><button class="btn y" data-suggest>Load suggested</button>
-    ${stops.length > 1 ? `<a class="btn pri" href="${routeLink(stops)}" target="_blank" rel="noopener">Walk it ↗</a>` : ''}
+  } else h += `<p class="empty">Nothing planned yet. Load the suggested day, or add places with +.</p>`;
+  h += `<div class="acts"><button class="btn ${stops.length ? '' : 'pri'}" data-suggest>Load suggested day</button>
+    ${stops.length > 1 ? `<a class="btn pri" href="${routeLink(stops)}" target="_blank" rel="noopener">${svg('walk')}Walk it · ${(total/1000).toFixed(1)} km</a>` : ''}
     ${stops.length ? `<button class="btn" data-clear>Clear</button>` : ''}</div>`;
-  if (stops.length > 1) h += `<div class="hint">≈ ${(total/1000).toFixed(1)} km between stops</div>`;
   const last = stops[stops.length - 1] || origin();
-  h += `<h2 class="kicker">Next from ${stops.length ? esc(last.name) : (S.me ? 'you' : 'the venue')}</h2>` + rows(nearest(last, 8, stops), last);
+  h += `<h2 class="kicker">Next, near ${stops.length ? esc(last.gig ? last.venue : last.name) : (S.me ? 'you' : 'the venue')}</h2>` + rows(nearest(last, 8, stops), last);
   return h;
 }
 
 function render() {
   renderChips();
   document.querySelectorAll('[data-tab]').forEach(t => t.setAttribute('aria-pressed', t.dataset.tab === S.tab));
+  document.getElementById('title').innerHTML = S.tab === 'plan' ? `Berlin, <i>${esc(day().label)}</i>` : 'Berlin, <i>around you</i>';
   document.getElementById('body').innerHTML = S.tab === 'near' ? renderNear() : renderPlan();
   renderMap();
   save();
@@ -302,8 +358,8 @@ const status = t => document.getElementById('status').textContent = t;
 async function liveSearch() {
   const c = map.getCenter(), r = 900;
   const sels = [...S.cats].flatMap(k => CATS[k].osm.map(s => [k, s]));
-  if (!sels.length) return status('Turn on a line first');
-  status('Scanning OpenStreetMap…');
+  if (!sels.length) return status('Turn on a category first');
+  status('Scanning…');
   const q = `[out:json][timeout:20];(${sels.map(([, s]) => `nwr${s}["name"](around:${r},${c.lat},${c.lng});`).join('')});out center 150;`;
   try {
     const res = await fetch('https://overpass-api.de/api/interpreter', { method:'POST', body:'data=' + encodeURIComponent(q) });
@@ -328,35 +384,52 @@ async function liveSearch() {
 
 // ---------- Geolocation ----------
 function locate(fly) {
-  const gps = document.getElementById('gps');
-  if (!navigator.geolocation) return gps.querySelector('span').textContent = 'No GPS';
+  const gps = document.getElementById('gps'), label = t => gps.querySelector('span').textContent = t;
+  if (!navigator.geolocation) return label('No GPS');
   navigator.geolocation.getCurrentPosition(pos => {
     S.me = { id:'me', cat:'base', name:'You', lat: pos.coords.latitude, lng: pos.coords.longitude };
     meMarker ??= new maplibregl.Marker({ element: el('<div class="me"></div>') }).setLngLat(ll(S.me)).addTo(map);
     meMarker.setLngLat(ll(S.me));
     if (fly) map.flyTo({ center: ll(S.me), zoom:15.5 });
-    gps.classList.add('live'); gps.querySelector('span').textContent = `±${Math.round(pos.coords.accuracy)} m`;
+    gps.classList.add('live'); label(`±${Math.round(pos.coords.accuracy)} m`);
     render();
-  }, err => { gps.classList.remove('live'); gps.querySelector('span').textContent = err.code === 1 ? 'GPS denied' : 'No fix'; },
+  }, err => { gps.classList.remove('live'); label(err.code === 1 ? 'GPS off' : 'No fix'); },
   { enableHighAccuracy:true, timeout:15000, maximumAge:30000 });
 }
 
+// ---------- Sheet: drag to resize, snaps to peek / half / full; tap toggles ----------
+const sheet = document.getElementById('sheet'), grip = sheet.querySelector('[data-grip]');
+const SNAPS = () => [112, innerHeight * .5, innerHeight * .86];
+const setSheet = px => { document.documentElement.style.setProperty('--sheet', px + 'px'); grip.setAttribute('aria-expanded', px > 120); };
+grip.addEventListener('pointerdown', e => {
+  const y0 = e.clientY, h0 = sheet.getBoundingClientRect().height; let moved = false;
+  sheet.classList.add('dragging'); grip.setPointerCapture(e.pointerId);
+  const move = ev => { moved = moved || Math.abs(ev.clientY - y0) > 4; if (moved) setSheet(Math.min(innerHeight * .9, Math.max(96, h0 + y0 - ev.clientY))); };
+  const up = () => {
+    grip.removeEventListener('pointermove', move); grip.removeEventListener('pointerup', up); sheet.classList.remove('dragging');
+    const h = sheet.getBoundingClientRect().height, snaps = SNAPS();
+    setSheet(moved ? snaps.reduce((a, b) => Math.abs(b - h) < Math.abs(a - h) ? b : a) : (h > 130 ? snaps[0] : snaps[1]));
+  };
+  grip.addEventListener('pointermove', move); grip.addEventListener('pointerup', up);
+});
+grip.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSheet(sheet.offsetHeight > 130 ? SNAPS()[0] : SNAPS()[1]); } });
+
 // ---------- Events ----------
-const focus = p => { map.flyTo({ center: ll(p), zoom:16.5 }); const m = marks.get(p.id); if (m && !m.getPopup().isOpen()) m.togglePopup(); };
-const add = p => { if (!inPlan(p)) S.plan[S.day].push(p); marks.forEach(m => m.getPopup()?.remove()); render(); };
+const focus = p => { map.flyTo({ center: ll(p), zoom:16.2, padding:{ bottom: sheet.offsetHeight } }); const m = marks.get(p.id); if (m && !m.getPopup().isOpen()) m.togglePopup(); };
+const add = p => { if (!inPlan(p)) S.plan[S.day].push(stop(p.id)); marks.forEach(m => m.getPopup()?.remove()); render(); };
 
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-cat],[data-tab],[data-day],[data-add],[data-mv],[data-rm],[data-suggest],[data-clear],[data-focus],[data-grip]');
+  const t = e.target.closest('[data-cat],[data-tab],[data-day],[data-add],[data-mv],[data-rm],[data-swap],[data-suggest],[data-clear],[data-focus]');
   if (!t) return;
   const ds = t.dataset, stops = S.plan[S.day];
-  if ('grip' in ds) { const min = document.body.classList.toggle('min'); t.setAttribute('aria-expanded', !min); t.setAttribute('aria-label', min ? 'Expand panel' : 'Collapse panel'); return; }
   if (ds.cat) { S.cats.has(ds.cat) ? S.cats.delete(ds.cat) : S.cats.add(ds.cat); }
-  else if (ds.tab) { S.tab = ds.tab; document.body.classList.remove('min'); document.querySelector('[data-grip]').setAttribute('aria-expanded', true); }
+  else if (ds.tab) { S.tab = ds.tab; if (sheet.offsetHeight < 130) setSheet(SNAPS()[1]); }
   else if (ds.day) S.day = ds.day;
   else if (ds.add) return add(byId(ds.add));
   else if (ds.mv) { const [i, d] = ds.mv.split(',').map(Number), j = i + d; if (j < 0 || j >= stops.length) return; [stops[i], stops[j]] = [stops[j], stops[i]]; }
   else if (ds.rm) stops.splice(+ds.rm, 1);
-  else if ('suggest' in ds) S.plan[S.day] = DAYS.find(d => d.k === S.day).suggest.map(([id, time]) => ({ ...byId(id), time }));
+  else if (ds.swap) { const [i, id] = ds.swap.split(','), cur = stops[+i]; stops[+i] = stop(id, byId(id).time || cur.time, cur.alts.filter(a => a !== id).concat(cur.id)); }
+  else if ('suggest' in ds) S.plan[S.day] = day().suggest.map(([id, time, alts]) => stop(id, time, alts));
   else if ('clear' in ds) S.plan[S.day] = [];
   else if (ds.focus) return focus(byId(ds.focus));
   render();

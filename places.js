@@ -3,6 +3,9 @@ const VENUE = { id:'venue', cat:'base', name:'Maritim proArte (MLcon)', lat:52.5
 // Where you're staying. Set to the conference hotel; point it at another place if you stay elsewhere.
 const HOTEL = VENUE;
 const P = (id,cat,name,lat,lng,note) => ({ id, cat, name, lat, lng, note, src:'pick' });
+const GIG_DAY = { tue:'Tue 17', wed:'Wed 18', thu:'Thu 19' };
+const G = (id,artist,venue,lat,lng,day,time,note) => ({ ...P(id,'music',`${artist} @ ${venue}`,lat,lng,
+  `${GIG_DAY[day]}${time ? ' · ' + time : ''} · ${note}`), gig:true, artist, venue, day, time });
 const PICKS = [
   VENUE,
   P('ber','base','BER Airport',52.3667,13.5033,'FEX or S-Bahn into the centre, about 35–45 min to Friedrichstraße.'),
@@ -39,14 +42,14 @@ const PICKS = [
   P('konzerthaus','music','Konzerthaus Berlin',52.5136,13.3917,'Classical, on Gendarmenmarkt.'),
   P('philharmonie','music','Philharmonie',52.5096,13.3700,'Berlin Phil. Check for last-minute tickets.'),
   // gigs during MLcon week (check doors & tickets before going)
-  P('gig-wedding','music','The Wedding Present @ Hole44',52.4790,13.4247,'Tue 17 Nov · Seamonsters 35th-anniversary tour. Indie rock.'),
-  P('gig-napa','music','NAPA @ Lido',52.4990,13.4450,'Tue 17 Nov · Portuguese indie rock.'),
-  P('gig-reckless','music','The Pretty Reckless @ Huxleys',52.4870,13.4205,'Wed 18 Nov · 20:00 · Hard rock.'),
-  P('gig-papa','music','Papa Roach @ Velodrom',52.5300,13.4520,'Wed 18 Nov · Arena rock.'),
-  P('gig-muse','music','Muse @ Uber Arena',52.5053,13.4436,'Wed 18 Nov · Arena show.'),
-  P('gig-evergrey','music','Evergrey @ Hole44',52.4790,13.4247,'Wed 18 Nov · Prog metal.'),
-  P('gig-eluveitie','music','Eluveitie @ Huxleys',52.4870,13.4205,'Thu 19 Nov · 19:00 · Folk metal.'),
-  P('gig-hausswolff','music','Anna von Hausswolff @ Astra',52.5072,13.4545,'Thu 19 Nov · Heavy, drone-y organ rock.'),
+  G('gig-wedding','The Wedding Present','Hole44',52.4790,13.4247,'tue','','Seamonsters 35th-anniversary tour · indie rock'),
+  G('gig-napa','NAPA','Lido',52.4990,13.4450,'tue','','Portuguese indie rock'),
+  G('gig-reckless','The Pretty Reckless','Huxleys Neue Welt',52.4870,13.4205,'wed','20:00','Hard rock'),
+  G('gig-muse','Muse','Uber Arena',52.5053,13.4436,'wed','20:00','Wow! Signal tour · arena, tickets may be resale only'),
+  G('gig-papa','Papa Roach','Velodrom',52.5300,13.4520,'wed','19:00','Rise of the Roach tour'),
+  G('gig-evergrey','Evergrey','Hole44',52.4790,13.4247,'wed','','Prog metal'),
+  G('gig-eluveitie','Eluveitie','Huxleys Neue Welt',52.4870,13.4205,'thu','19:00','Folk metal'),
+  G('gig-hausswolff','Anna von Hausswolff','Astra Kulturhaus',52.5072,13.4545,'thu','','Heavy, drone-y organ rock'),
   // sights
   P('traenen','sights','Tränenpalast',52.5203,13.3870,'Free museum on the Cold War border crossing, next to the venue.'),
   P('dussmann','sights','Dussmann KulturKaufhaus',52.5180,13.3888,'Huge bookshop, 2 min from the venue.'),
@@ -61,14 +64,14 @@ const PICKS = [
   P('technik','sights','Deutsches Technikmuseum',52.4986,13.3776,'Tech museum, including a Zuse computer exhibit.'),
 ];
 
-// Suggested plan per day: [place id, suggested time]. Gig times are from listings; others are suggestions.
+// Suggested plan per day: [place id, suggested time, optional alternative ids]. Gig times are from listings; others are suggestions.
 const DAYS = [
   { k:'tue', label:'Tue 17', hint:'Land around noon. Easy afternoon, then indie rock in Neukölln.',
-    suggest:[['ber','12:00'],['venue','13:30'],['traenen','15:00'],['lemke','18:00'],['gig-wedding','20:00']] },
+    suggest:[['ber','12:00'],['venue','13:30'],['traenen','15:00'],['lemke','18:00'],['gig-wedding','',['gig-napa']]] },
   { k:'wed', label:'Wed 18', hint:'Conference day, then hard rock at Huxleys and a late blues pub.',
-    suggest:[['venue','18:00'],['curry36','19:00'],['gig-reckless','20:00'],['yorck','23:00']] },
+    suggest:[['venue','18:00'],['curry36','19:00'],['gig-reckless','20:00',['gig-muse','gig-papa','gig-evergrey']],['yorck','23:00']] },
   { k:'thu', label:'Thu 19', hint:'Leave a little early: Street Food Thursday, then folk metal, then craft beer.',
-    suggest:[['venue','17:00'],['markthalle','17:30'],['gig-eluveitie','19:00'],['hopfenreich','22:30']] },
+    suggest:[['venue','17:00'],['markthalle','17:30'],['gig-eluveitie','19:00',['gig-hausswolff']],['hopfenreich','22:30']] },
   { k:'fri', label:'Fri 20', hint:'Coffee, then head to BER.',
     suggest:[['barn','08:00'],['ber','']] },
 ];
