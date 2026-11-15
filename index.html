@@ -12,15 +12,20 @@
   :root {
     --paper:#f3f0e8; --ink:#141414; --yellow:#f0d722; --rule:#ddd8cb; --mute:#6d6a63;
     --display:'Barlow Condensed', sans-serif; --body:'Barlow', sans-serif;
-    --sheet:46vh;
+    --sheet:46vh; --target:24px;
+    --safe-l:max(10px, env(safe-area-inset-left, 0px)); --safe-r:max(10px, env(safe-area-inset-right, 0px));
   }
+  @media (pointer: coarse) { :root { --target:44px; } }
+  :where(button, a.btn) { min-block-size:var(--target); min-inline-size:var(--target); }
+  h1, h2, h3 { text-wrap:balance; }
+  ul, ol { list-style:none; margin:0; padding:0; }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html,body { margin:0; height:100%; background:var(--paper); color:var(--ink); font:15px/1.35 var(--body); }
   button { font:inherit; color:inherit; cursor:pointer; }
   #map { position:fixed; inset:0; }
 
   /* ---- header: station sign ---- */
-  .top { position:fixed; top:0; left:0; right:0; z-index:10; padding:calc(env(safe-area-inset-top) + 10px) 10px 0; pointer-events:none; }
+  .top { position:fixed; top:0; left:0; right:0; z-index:10; padding:calc(env(safe-area-inset-top, 0px) + 10px) var(--safe-r) 0 var(--safe-l); pointer-events:none; }
   .sign { pointer-events:auto; display:flex; align-items:center; gap:10px; background:var(--ink); color:#fff; border-radius:12px;
           padding:8px 12px 8px 8px; box-shadow:0 6px 20px #0003; }
   .sign .u { width:34px; height:34px; border-radius:7px; background:var(--yellow); color:var(--ink); display:grid; place-items:center;
@@ -33,61 +38,62 @@
   .sign .gps.live i { background:#38d26b; box-shadow:0 0 0 3px #38d26b33; }
   .chips { pointer-events:auto; display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; padding:8px 0 10px; }
   .chips::-webkit-scrollbar { display:none; }
-  .chip { flex:none; display:flex; align-items:center; gap:7px; border:0; background:#fff; border-radius:8px; padding:4px 10px 4px 4px;
+  .chip { flex:none; display:flex; align-items:center; gap:7px; border:0; background:#fff; border-radius:8px; padding:4px 12px 4px 8px;
           font:600 14px/1 var(--body); box-shadow:0 2px 8px #0002; transition:opacity .15s, transform .15s; }
   .chip:active { transform:scale(.96); }
-  .chip.off { opacity:.45; box-shadow:none; }
+  .chip[aria-pressed="false"] { opacity:.5; box-shadow:none; }
   .badge { width:26px; height:22px; border-radius:5px; display:grid; place-items:center; color:#fff; flex:none;
            font:700 13px/1 var(--display); letter-spacing:.02em; }
 
   /* ---- floating actions ---- */
-  .fab { position:fixed; right:10px; z-index:10; display:flex; flex-direction:column; gap:8px; bottom:calc(var(--sheet) + 12px); transition:bottom .25s; }
+  .fab { position:fixed; right:var(--safe-r); z-index:10; display:flex; flex-direction:column; gap:8px; bottom:calc(var(--sheet) + 12px); transition:bottom .25s; }
   .fab button { border:0; background:var(--ink); color:#fff; border-radius:10px; padding:10px 13px; font:700 14px/1 var(--display);
                 letter-spacing:.06em; text-transform:uppercase; box-shadow:0 4px 14px #0004; }
   .fab button.y { background:var(--yellow); color:var(--ink); }
 
   /* ---- sheet ---- */
   .sheet { position:fixed; left:0; right:0; bottom:0; z-index:11; height:var(--sheet); background:var(--paper); border-top:3px solid var(--ink);
-           border-radius:18px 18px 0 0; display:flex; flex-direction:column; transition:height .25s; padding-bottom:env(safe-area-inset-bottom);
+           border-radius:18px 18px 0 0; display:flex; flex-direction:column; transition:height .25s; padding:0 var(--safe-r) env(safe-area-inset-bottom, 0px) var(--safe-l);
            box-shadow:0 -10px 30px #0002; }
   body.min { --sheet:calc(62px + env(safe-area-inset-bottom)); }
-  .grip { position:absolute; top:-3px; left:50%; transform:translateX(-50%); width:60px; height:22px; border:0; background:none; }
+  .grip { position:absolute; top:-3px; left:50%; transform:translateX(-50%); width:72px; min-block-size:30px; border:0; background:none; }
   .grip::after { content:''; position:absolute; top:9px; left:12px; right:12px; height:4px; border-radius:2px; background:var(--rule); }
-  .bar { display:flex; align-items:center; gap:10px; padding:16px 14px 10px; }
+  .bar { display:flex; align-items:center; gap:10px; padding:20px 4px 10px; }
   .seg { display:flex; background:#e6e2d7; border-radius:9px; padding:3px; }
   .seg button { border:0; background:none; padding:7px 16px; border-radius:7px; font:700 15px/1 var(--display); letter-spacing:.06em; text-transform:uppercase; color:var(--mute); }
-  .seg button.on { background:var(--ink); color:#fff; }
+  .seg button[aria-pressed="true"] { background:var(--ink); color:#fff; }
   .status { margin-left:auto; font-size:12px; color:var(--mute); text-align:right; max-width:42%; }
-  .body { overflow-y:auto; flex:1; padding:0 14px 16px; overscroll-behavior:contain; }
-  .kicker { font:700 12px/1 var(--display); letter-spacing:.12em; text-transform:uppercase; color:var(--mute); margin:12px 0 4px; }
+  .body { overflow-y:auto; flex:1; padding:0 4px 16px; overscroll-behavior:contain; }
+  .kicker { font:700 12px/1.2 var(--display); letter-spacing:.12em; text-transform:uppercase; color:var(--mute); margin:12px 0 4px; }
 
   .row { display:flex; gap:11px; align-items:center; padding:10px 0; border-bottom:1px solid var(--rule); animation:up .35s both; }
-  .row .t { flex:1; min-width:0; }
-  .row .n { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .row .s { font-size:13px; color:var(--mute); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .t { flex:1; min-width:0; border:0; background:none; padding:0; text-align:left; }
+  .row .n { font-weight:600; }
+  .row .s { font-size:13px; color:var(--mute); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
   .row .s b { color:var(--ink); font:700 13px/1 var(--display); letter-spacing:.04em; }
-  .add { flex:none; width:34px; height:34px; border-radius:50%; border:2px solid var(--ink); background:#fff; font:700 20px/1 var(--display); display:grid; place-items:center; }
+  .add { flex:none; width:38px; height:38px; border-radius:50%; border:2px solid var(--ink); background:#fff; font:700 20px/1 var(--display); display:grid; place-items:center; }
   .add.on { background:var(--yellow); }
   @keyframes up { from { opacity:0; transform:translateY(6px); } }
 
   /* ---- plan as a U-Bahn line ---- */
   .days { display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; padding-bottom:4px; }
   .day { flex:none; border:2px solid var(--ink); background:#fff; border-radius:8px; padding:6px 10px; font:700 15px/1 var(--display); letter-spacing:.04em; text-transform:uppercase; }
-  .day.on { background:var(--ink); color:#fff; }
+  .day[aria-pressed="true"] { background:var(--ink); color:#fff; }
   .day sup { font-size:11px; color:var(--yellow); margin-left:2px; }
-  .day:not(.on) sup { color:var(--mute); }
+  .day[aria-pressed="false"] sup { color:var(--mute); }
   .hint { font-size:13px; color:var(--mute); margin:8px 0 4px; }
   .line { position:relative; margin:10px 0 4px; }
   .line::before { content:''; position:absolute; left:13px; top:14px; bottom:14px; width:8px; background:var(--yellow); border:2px solid var(--ink); border-radius:4px; }
-  .stn { position:relative; display:flex; align-items:center; gap:12px; padding:6px 0; animation:up .35s both; }
+  .stn { position:relative; animation:up .35s both; }
+  .stn .r { display:flex; align-items:center; gap:12px; padding:6px 0; }
   .stn .o { flex:none; width:34px; height:34px; border-radius:50%; background:#fff; border:3px solid var(--ink); display:grid; place-items:center;
             font:800 15px/1 var(--display); z-index:1; }
   .stn .t { flex:1; min-width:0; }
-  .stn .n { font:700 17px/1.1 var(--display); letter-spacing:.02em; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .stn .n { font:700 17px/1.1 var(--display); letter-spacing:.02em; text-transform:uppercase; }
   .stn .s { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--mute); margin-top:3px; }
   .stn .s .badge { width:22px; height:16px; font-size:11px; }
   .ctl { display:flex; gap:2px; }
-  .ctl button { border:0; background:none; width:28px; height:30px; border-radius:6px; font-size:15px; color:var(--mute); }
+  .ctl button { border:0; background:none; width:32px; height:32px; border-radius:6px; font-size:15px; color:var(--mute); }
   .ctl button:active { background:#e6e2d7; }
   .leg { padding:1px 0 1px 46px; font:600 12px/1.6 var(--display); letter-spacing:.08em; text-transform:uppercase; color:var(--mute); }
   .acts { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 4px; }
@@ -111,6 +117,8 @@
   .pop p { margin:8px 0 10px; font-size:14px; }
   .pop .acts { margin:0; }
   .maplibregl-ctrl-attrib { font-size:10px; }
+  :focus-visible { outline:3px solid #2f6fe4; outline-offset:2px; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation:none !important; transition:none !important; } }
 </style>
 </head>
 <body>
@@ -118,29 +126,30 @@
 
 <header class="top">
   <div class="sign">
-    <div class="u">U</div>
+    <div class="u" aria-hidden="true">U</div>
     <div><h1>Berlin</h1><small>MLcon week · Nov 17–20</small></div>
-    <div class="gps" id="gps"><i></i><span>No fix</span></div>
+    <div class="gps" id="gps" role="status"><i aria-hidden="true"></i><span>No fix</span></div>
   </div>
-  <nav class="chips" id="chips"></nav>
+  <nav class="chips" id="chips" aria-label="Categories"></nav>
 </header>
 
 <div class="fab">
+  <button id="btnHotel">⌂ Hotel</button>
   <button id="btnMe">◎ Me</button>
   <button id="btnLive" class="y">Scan here</button>
 </div>
 
-<section class="sheet" id="sheet">
-  <button class="grip" data-grip aria-label="Toggle panel"></button>
+<main class="sheet" id="sheet">
+  <button class="grip" data-grip aria-label="Collapse panel" aria-expanded="true"></button>
   <div class="bar">
     <div class="seg">
-      <button data-tab="near" class="on">Nearby</button>
-      <button data-tab="plan">Plan</button>
+      <button data-tab="near" aria-pressed="true">Nearby</button>
+      <button data-tab="plan" aria-pressed="false">Plan</button>
     </div>
-    <span class="status" id="status"></span>
+    <span class="status" id="status" role="status"></span>
   </div>
   <div class="body" id="body"></div>
-</section>
+</main>
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="places.js"></script>
@@ -155,7 +164,7 @@ const CATS = {
   sights: { code:'U3', label:'Sights',     icon:'🏛️', color:'#16683d', osm:['["tourism"~"^(attraction|museum|gallery|viewpoint)$"]'] },
   needs:  { code:'U1', label:'Essentials', icon:'🧴', color:'#7dad4c', osm:['["amenity"~"^(pharmacy|atm)$"]','["shop"="supermarket"]'] },
 };
-const badge = c => `<span class="badge" style="background:${CATS[c].color}">${CATS[c].code}</span>`;
+const badge = c => `<span class="badge" aria-hidden="true" style="background:${CATS[c].color}">${CATS[c].code}</span>`;
 
 // ---------- State ----------
 const store = {
@@ -234,54 +243,55 @@ function renderMap() {
 const inPlan = p => S.plan[S.day].some(s => s.id === p.id);
 const dayLabel = () => DAYS.find(d => d.k === S.day).label;
 const addLabel = p => inPlan(p) ? `<span class="btn y">✓ ${dayLabel()}</span>` : `<button class="btn pri" data-add="${p.id}">+ ${dayLabel()}</button>`;
-const addDot = p => inPlan(p) ? `<span class="add on">✓</span>` : `<button class="add" data-add="${p.id}" aria-label="Add to ${dayLabel()}">+</button>`;
+const addDot = p => inPlan(p) ? `<span class="add on" aria-label="In ${dayLabel()} plan" role="img">✓</span>` : `<button class="add" data-add="${p.id}" aria-label="Add ${esc(p.name)} to ${dayLabel()}">+</button>`;
 
-const row = (p, from, i) => `<div class="row" data-focus="${p.id}" style="animation-delay:${Math.min(i, 12) * 25}ms">
+const row = (p, from, i) => `<li class="row" style="animation-delay:${Math.min(i, 12) * 25}ms">
   ${badge(p.cat)}
-  <div class="t"><div class="n">${esc(p.name)}</div><div class="s"><b>${walk(dist(from, p))}</b>${p.src === 'osm' ? ' · OSM' : ''}${p.note ? ' · ' + esc(p.note) : ''}</div></div>
-  ${addDot(p)}</div>`;
+  <button class="t" data-focus="${p.id}"><span class="n">${esc(p.name)}</span><span class="s"><b>${walk(dist(from, p))}</b> · ${CATS[p.cat].label}${p.src === 'osm' ? ' · OSM' : ''}${p.note ? ' · ' + esc(p.note) : ''}</span></button>
+  ${addDot(p)}</li>`;
+const rows = (list, from) => `<ul>${list.map((p, i) => row(p, from, i)).join('')}</ul>`;
 
 const nearest = (from, n, exclude = []) => visible()
   .filter(p => p.cat !== 'base' && !exclude.some(e => e.id === p.id))
   .map(p => [dist(from, p), p]).sort((a, b) => a[0] - b[0]).slice(0, n).map(x => x[1]);
 
 const renderChips = () => document.getElementById('chips').innerHTML = Object.entries(CATS).map(([k, c]) =>
-  `<button class="chip ${S.cats.has(k) ? '' : 'off'}" data-cat="${k}">${badge(k)}${c.label}</button>`).join('');
+  `<button class="chip" aria-pressed="${S.cats.has(k)}" data-cat="${k}">${badge(k)}${c.label}</button>`).join('');
 
 function renderNear() {
   const from = origin(), list = nearest(from, 60);
-  return `<div class="kicker">From ${S.me ? 'your location' : 'the venue'} · ${list.length} places</div>` +
-    (list.map((p, i) => row(p, from, i)).join('') || '<div class="empty">Turn on a line above.</div>');
+  return `<h2 class="kicker">From ${S.me ? 'your location' : 'the venue'} · ${list.length} places</h2>` +
+    (list.length ? rows(list, from) : '<p class="empty">Turn on a line above.</p>');
 }
 
 function renderPlan() {
   const d = DAYS.find(x => x.k === S.day), stops = S.plan[S.day];
-  let h = `<div class="days">${DAYS.map(x => `<button class="day ${x.k === S.day ? 'on' : ''}" data-day="${x.k}">${x.label}<sup>${S.plan[x.k].length}</sup></button>`).join('')}</div>
+  let h = `<div class="days">${DAYS.map(x => `<button class="day" aria-pressed="${x.k === S.day}" data-day="${x.k}">${x.label}<sup aria-label="${S.plan[x.k].length} stops">${S.plan[x.k].length}</sup></button>`).join('')}</div>
     <div class="hint">${d.hint}</div>`;
   let total = 0;
   if (stops.length) {
-    h += '<div class="line">';
+    h += `<ol class="line" aria-label="${d.label} route">`;
     stops.forEach((p, i) => {
-      if (i) { const m = dist(stops[i-1], p); total += m; h += `<div class="leg">${walk(m)}</div>`; }
-      h += `<div class="stn" data-focus="${p.id}" style="animation-delay:${i * 40}ms"><div class="o">${i+1}</div>
-        <div class="t"><div class="n">${esc(p.name)}</div><div class="s">${badge(p.cat)} ${CATS[p.cat].label}</div></div>
-        <div class="ctl"><button data-mv="${i},-1" aria-label="Move up">↑</button><button data-mv="${i},1" aria-label="Move down">↓</button><button data-rm="${i}" aria-label="Remove">✕</button></div></div>`;
+      const leg = i ? dist(stops[i-1], p) : 0; total += leg;
+      h += `<li class="stn" style="animation-delay:${i * 40}ms">${i ? `<div class="leg">${walk(leg)}</div>` : ''}
+        <div class="r"><span class="o" aria-hidden="true">${i+1}</span>
+        <button class="t" data-focus="${p.id}"><span class="n">${esc(p.name)}</span><span class="s">${badge(p.cat)} ${CATS[p.cat].label}</span></button>
+        <div class="ctl"><button data-mv="${i},-1" aria-label="Move ${esc(p.name)} up">↑</button><button data-mv="${i},1" aria-label="Move ${esc(p.name)} down">↓</button><button data-rm="${i}" aria-label="Remove ${esc(p.name)}">✕</button></div></div></li>`;
     });
-    h += '</div>';
-  } else h += `<div class="empty">No stops yet. Load the suggested line or add places with +.</div>`;
+    h += '</ol>';
+  } else h += `<p class="empty">No stops yet. Load the suggested line or add places with +.</p>`;
   h += `<div class="acts"><button class="btn y" data-suggest>Load suggested</button>
     ${stops.length > 1 ? `<a class="btn pri" href="${routeLink(stops)}" target="_blank" rel="noopener">Walk it ↗</a>` : ''}
     ${stops.length ? `<button class="btn" data-clear>Clear</button>` : ''}</div>`;
   if (stops.length > 1) h += `<div class="hint">≈ ${(total/1000).toFixed(1)} km between stops</div>`;
   const last = stops[stops.length - 1] || origin();
-  h += `<div class="kicker">Next from ${stops.length ? esc(last.name) : (S.me ? 'you' : 'the venue')}</div>` +
-       nearest(last, 8, stops).map((p, i) => row(p, last, i)).join('');
+  h += `<h2 class="kicker">Next from ${stops.length ? esc(last.name) : (S.me ? 'you' : 'the venue')}</h2>` + rows(nearest(last, 8, stops), last);
   return h;
 }
 
 function render() {
   renderChips();
-  document.querySelectorAll('[data-tab]').forEach(t => t.classList.toggle('on', t.dataset.tab === S.tab));
+  document.querySelectorAll('[data-tab]').forEach(t => t.setAttribute('aria-pressed', t.dataset.tab === S.tab));
   document.getElementById('body').innerHTML = S.tab === 'near' ? renderNear() : renderPlan();
   renderMap();
   save();
@@ -339,9 +349,9 @@ document.addEventListener('click', e => {
   const t = e.target.closest('[data-cat],[data-tab],[data-day],[data-add],[data-mv],[data-rm],[data-suggest],[data-clear],[data-focus],[data-grip]');
   if (!t) return;
   const ds = t.dataset, stops = S.plan[S.day];
-  if ('grip' in ds) return document.body.classList.toggle('min');
+  if ('grip' in ds) { const min = document.body.classList.toggle('min'); t.setAttribute('aria-expanded', !min); t.setAttribute('aria-label', min ? 'Expand panel' : 'Collapse panel'); return; }
   if (ds.cat) { S.cats.has(ds.cat) ? S.cats.delete(ds.cat) : S.cats.add(ds.cat); }
-  else if (ds.tab) { S.tab = ds.tab; document.body.classList.remove('min'); }
+  else if (ds.tab) { S.tab = ds.tab; document.body.classList.remove('min'); document.querySelector('[data-grip]').setAttribute('aria-expanded', true); }
   else if (ds.day) S.day = ds.day;
   else if (ds.add) return add(byId(ds.add));
   else if (ds.mv) { const [i, d] = ds.mv.split(',').map(Number), j = i + d; if (j < 0 || j >= stops.length) return; [stops[i], stops[j]] = [stops[j], stops[i]]; }
@@ -351,6 +361,7 @@ document.addEventListener('click', e => {
   else if (ds.focus) return focus(byId(ds.focus));
   render();
 });
+document.getElementById('btnHotel').onclick = () => focus(HOTEL);
 document.getElementById('btnMe').onclick = () => locate(true);
 document.getElementById('btnLive').onclick = liveSearch;
 

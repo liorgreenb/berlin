@@ -1,5 +1,7 @@
 // Curated places and day templates for the Berlin MLcon map.
 const VENUE = { id:'venue', cat:'base', name:'Maritim proArte (MLcon)', lat:52.5186, lng:13.3886, note:'Friedrichstraße 151. Conference days Nov 18–19, workshops Nov 17 & 20.' };
+// Where you're staying. Set to the conference hotel; point it at another place if you stay elsewhere.
+const HOTEL = VENUE;
 const P = (id,cat,name,lat,lng,note) => ({ id, cat, name, lat, lng, note, src:'pick' });
 const PICKS = [
   VENUE,
