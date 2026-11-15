@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0d0f13" media="(prefers-color-scheme: dark)">
 <title>Berlin · MLcon week</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <style>
   :root {
@@ -25,7 +25,7 @@
     --hot-bg: light-dark(#fff1ea, #3a1f15);
     --hot-ink:light-dark(#b23a0c, #ffb59a);
     --shadow: light-dark(0 10px 40px rgb(21 24 29 / .14), 0 10px 40px rgb(0 0 0 / .5));
-    --serif: 'Instrument Serif', serif; --sans: 'Instrument Sans', sans-serif;
+    --display: 'Geist', sans-serif; --sans: 'Geist', sans-serif;
     --spring: cubic-bezier(.2, .9, .25, 1.12);
     --target: 24px;
     --safe-l: max(10px, env(safe-area-inset-left, 0px)); --safe-r: max(10px, env(safe-area-inset-right, 0px));
@@ -37,6 +37,7 @@
   button { font: inherit; color: inherit; cursor: pointer; }
   :where(button, a.btn) { min-block-size: var(--target); min-inline-size: var(--target); }
   h1, h2, h3 { text-wrap: balance; }
+  h1 i, h2 i { font-style: normal; }
   ul, ol { list-style: none; margin: 0; padding: 0; }
   .glass { background: var(--glass); -webkit-backdrop-filter: blur(20px) saturate(1.6); backdrop-filter: blur(20px) saturate(1.6); box-shadow: var(--shadow); }
   svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; flex: none; }
@@ -50,9 +51,12 @@
   .top > * { pointer-events: auto; }
   .head { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 22px; animation: drop .6s var(--spring) both; }
   .head small { display: block; font: 600 11px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
-  .head h1 { margin: 4px 0 0; font: 400 30px/1 var(--serif); letter-spacing: -.01em; }
+  .head h1 { margin: 5px 0 0; font: 700 25px/1.05 var(--display); letter-spacing: -.03em; }
   .head h1 i { color: var(--accent); }
-  .gps { margin-left: auto; display: flex; align-items: center; gap: 6px; padding: 7px 11px; border-radius: 999px; background: var(--solid); font: 600 12px/1 var(--sans); color: var(--mute); }
+  .hd-acts { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+  .hotel { display: flex; align-items: center; gap: 6px; border: 0; border-radius: 999px; padding: 0 14px 0 11px; background: var(--accent); color: var(--on-accent); font: 600 13px/1 var(--sans); transition: transform .3s var(--spring); }
+  .hotel:active { transform: scale(.94); }
+  .gps { display: flex; align-items: center; gap: 6px; padding: 7px 11px; border-radius: 999px; background: var(--solid); font: 600 12px/1 var(--sans); color: var(--mute); }
   .gps i { width: 7px; height: 7px; border-radius: 50%; background: var(--mute); }
   .gps.live { color: light-dark(#1d6b3a, #7fe0a2); } .gps.live i { background: #23a352; box-shadow: 0 0 0 4px #23a35233; }
   .chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 2px 2px 8px; margin: 0 -2px; }
@@ -98,7 +102,7 @@
   .day { flex: none; border: 1.5px solid var(--rule); background: none; border-radius: 999px; padding: 0 14px; font: 600 13px/1 var(--sans); color: var(--mute); transition: all .25s; }
   .day[aria-pressed="true"] { background: var(--accent); border-color: transparent; color: var(--on-accent); }
   .day sup { font-size: 10px; margin-left: 3px; opacity: .8; }
-  .dayhead { margin: 14px 0 2px; font: 400 26px/1.05 var(--serif); }
+  .dayhead { margin: 14px 0 2px; font: 700 22px/1.1 var(--display); letter-spacing: -.025em; }
   .dayhead i { color: var(--accent); }
   .hint { margin: 2px 0 10px; font-size: 13px; color: var(--mute); }
   .tl { display: flex; flex-direction: column; }
@@ -107,7 +111,7 @@
   .stop .card { display: flex; align-items: center; gap: 10px; padding: 8px 0 8px 14px; border-left: 2px solid var(--rule); min-width: 0; }
   .stop.gig .tm { color: var(--hot-ink); }
   .stop.gig .card { margin: 2px 0; padding: 12px; border: 0; border-radius: 18px; background: var(--hot-bg); }
-  .stop.gig .t .n { font: 400 22px/1.05 var(--serif); }
+  .stop.gig .t .n { font: 700 17px/1.2 var(--display); letter-spacing: -.015em; }
   .stop.gig .t .s { color: var(--hot-ink); }
   .leg { padding: 0 0 0 14px; border-left: 2px dotted var(--rule); font: 500 12px/2.2 var(--sans); color: var(--mute); }
   .ctl { display: flex; }
@@ -139,7 +143,7 @@
                               box-shadow: var(--shadow); font-family: var(--sans); min-width: 230px; animation: pop .35s var(--spring) both; }
   .maplibregl-popup-tip { display: none; }
   .maplibregl-popup-close-button { font-size: 20px; padding: 4px 10px; color: var(--mute); }
-  .pop h3 { margin: 0 26px 4px 0; font: 400 24px/1.05 var(--serif); }
+  .pop h3 { margin: 0 26px 4px 0; font: 700 19px/1.15 var(--display); letter-spacing: -.02em; }
   .pop .m { font-size: 12px; color: var(--mute); }
   .pop p { margin: 8px 0 12px; font-size: 14px; }
   .pop .acts { margin: 0; }
@@ -159,7 +163,7 @@
 <header class="top">
   <div class="head glass">
     <div><small>MLcon week · Berlin</small><h1 id="title">Berlin, <i>around you</i></h1></div>
-    <div class="gps" id="gps" role="status"><i aria-hidden="true"></i><span>No fix</span></div>
+    <div class="hd-acts"><button class="hotel" id="btnHotel" aria-label="Centre map on hotel"></button><div class="gps" id="gps" role="status"><i aria-hidden="true"></i><span>No fix</span></div></div>
   </div>
   <nav class="chips" id="chips" aria-label="Categories"></nav>
 </header>
@@ -177,7 +181,6 @@
 </main>
 
 <div class="fab">
-  <button id="btnHotel" class="glass" aria-label="Centre on hotel"></button>
   <button id="btnMe" class="glass" aria-label="Centre on me"></button>
   <button id="btnLive" class="pri" aria-label="Scan this area for places"></button>
 </div>
@@ -201,7 +204,7 @@ const ICON = {
   ext: 'M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5',
 };
 const svg = k => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICON[k]}"/></svg>`;
-document.getElementById('btnHotel').innerHTML = svg('base');
+document.getElementById('btnHotel').innerHTML = svg('base') + 'Hotel';
 document.getElementById('btnMe').innerHTML = svg('me');
 document.getElementById('btnLive').innerHTML = svg('scan');
 
