@@ -38,6 +38,15 @@ const PICKS = [
   P('so36','music','SO36',52.5005,13.4220,'Legendary punk/indie venue.'),
   P('konzerthaus','music','Konzerthaus Berlin',52.5136,13.3917,'Classical, on Gendarmenmarkt.'),
   P('philharmonie','music','Philharmonie',52.5096,13.3700,'Berlin Phil. Check for last-minute tickets.'),
+  // gigs during MLcon week (check doors & tickets before going)
+  P('gig-wedding','music','The Wedding Present @ Hole44',52.4790,13.4247,'Tue 17 Nov · Seamonsters 35th-anniversary tour. Indie rock.'),
+  P('gig-napa','music','NAPA @ Lido',52.4990,13.4450,'Tue 17 Nov · Portuguese indie rock.'),
+  P('gig-reckless','music','The Pretty Reckless @ Huxleys',52.4870,13.4205,'Wed 18 Nov · 20:00 · Hard rock.'),
+  P('gig-papa','music','Papa Roach @ Velodrom',52.5300,13.4520,'Wed 18 Nov · Arena rock.'),
+  P('gig-muse','music','Muse @ Uber Arena',52.5053,13.4436,'Wed 18 Nov · Arena show.'),
+  P('gig-evergrey','music','Evergrey @ Hole44',52.4790,13.4247,'Wed 18 Nov · Prog metal.'),
+  P('gig-eluveitie','music','Eluveitie @ Huxleys',52.4870,13.4205,'Thu 19 Nov · 19:00 · Folk metal.'),
+  P('gig-hausswolff','music','Anna von Hausswolff @ Astra',52.5072,13.4545,'Thu 19 Nov · Heavy, drone-y organ rock.'),
   // sights
   P('traenen','sights','Tränenpalast',52.5203,13.3870,'Free museum on the Cold War border crossing, next to the venue.'),
   P('dussmann','sights','Dussmann KulturKaufhaus',52.5180,13.3888,'Huge bookshop, 2 min from the venue.'),
@@ -52,13 +61,14 @@ const PICKS = [
   P('technik','sights','Deutsches Technikmuseum',52.4986,13.3776,'Tech museum, including a Zuse computer exhibit.'),
 ];
 
+// Suggested plan per day: [place id, suggested time]. Gig times are from listings; others are suggestions.
 const DAYS = [
-  { k:'tue', label:'Tue 17', hint:'Land at BER around noon. Afternoon and evening are free.',
-    suggest:['ber','venue','traenen','neues','vuong','bflat','lemke'] },
-  { k:'wed', label:'Wed 18', hint:'Conference day. Evenings are free.',
-    suggest:['venue','dussmann','reichstag','brandenburg','memorial','borchardt','newton'] },
-  { k:'thu', label:'Thu 19', hint:'Conference day. Street Food Thursday at Markthalle Neun.',
-    suggest:['venue','markthalle','hopfenreich','so36'] },
-  { k:'fri', label:'Fri 20', hint:'Morning only, then head to BER.',
-    suggest:['fathercarp','ber'] },
+  { k:'tue', label:'Tue 17', hint:'Land around noon. Easy afternoon, then indie rock in Neukölln.',
+    suggest:[['ber','12:00'],['venue','13:30'],['traenen','15:00'],['lemke','18:00'],['gig-wedding','20:00']] },
+  { k:'wed', label:'Wed 18', hint:'Conference day, then hard rock at Huxleys and a late blues pub.',
+    suggest:[['venue','18:00'],['curry36','19:00'],['gig-reckless','20:00'],['yorck','23:00']] },
+  { k:'thu', label:'Thu 19', hint:'Leave a little early: Street Food Thursday, then folk metal, then craft beer.',
+    suggest:[['venue','17:00'],['markthalle','17:30'],['gig-eluveitie','19:00'],['hopfenreich','22:30']] },
+  { k:'fri', label:'Fri 20', hint:'Coffee, then head to BER.',
+    suggest:[['barn','08:00'],['ber','']] },
 ];
