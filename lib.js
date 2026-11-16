@@ -8,7 +8,9 @@ const ICON = {
   pubs:   'M6 8h10v11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2zM16 11h2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-2M6 8a3 3 0 0 1 5-2.2A3 3 0 0 1 16 8',
   music:  'M9 18V5l12-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM21 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0z',
   sights: 'M3 21h18M5 21V10M19 21V10M9.5 21V10M14.5 21V10M2 10l10-6 10 6z',
-  needs:  'M6 7h12l-1 14H7zM9 7a3 3 0 0 1 6 0',
+  shops:  'M6 7h12l-1 14H7zM9 7a3 3 0 0 1 6 0',
+  markets:'M12 3l5 7h-3l4 6H6l4-6H7zM12 16v5',
+  needs:  'M9 3h6v6h6v6h-6v6H9v-6H3V9h6z',
   me:     'M21 3 3 10.5l7.5 3 3 7.5z',
   scan:   'M3 7V4h3M21 7V4h-3M3 17v3h3M21 17v3h-3M8 12a4 4 0 1 0 8 0 4 4 0 0 0-8 0',
   up: 'M12 19V5M5 12l7-7 7 7', down: 'M12 5v14M5 12l7 7 7-7', x: 'M6 6l12 12M18 6 6 18', plus: 'M12 5v14M5 12h14', check: 'M5 12.5l4.5 4.5L19 7',
@@ -26,6 +28,8 @@ const CATS = {
   food:   { label:'Food',       color:'#e0457b', osm:['["amenity"~"^(restaurant|fast_food)$"]'] },
   coffee: { label:'Coffee',     color:'#9a6b3f', osm:['["amenity"="cafe"]'] },
   sights: { label:'Sights',     color:'#2f9e8f', osm:['["tourism"~"^(attraction|museum|gallery|viewpoint)$"]'] },
+  shops:  { label:'Shops',      color:'#7a5af8', osm:['["shop"~"^(mall|department_store|books|music|clothes|second_hand|gift)$"]'] },
+  markets:{ label:'Winter markets', color:'#c0392b', osm:[] },
   needs:  { label:'Essentials', color:'#6b7bd6', osm:['["amenity"~"^(pharmacy|atm)$"]','["shop"="supermarket"]'] },
 };
 const ico = c => `<span class="ico" aria-hidden="true" style="background:color-mix(in srgb, ${CATS[c].color} 16%, transparent);color:${CATS[c].color}">${svg(c)}</span>`;
@@ -48,3 +52,30 @@ const el = html => { const d = document.createElement('div'); d.innerHTML = html
 const ll = p => [p.lng, p.lat];
 const dirTo = (p, mode) => `https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}&travelmode=${mode}`;
 const MAP_STYLE = 'https://tiles.openfreemap.org/styles/positron';
+
+// Live places from OpenStreetMap (Overpass) around a point, for the given category keys.
+// Names already in the curated list are dropped. Throws on a failed request.
+async function osmScan(center, radius, catKeys) {
+  const sels = catKeys.flatMap(k => CATS[k].osm.map(s => [k, s]));
+  if (!sels.length) return [];
+  const q = `[out:json][timeout:25];(${sels.map(([, s]) => `nwr${s}["name"](around:${radius},${center.lat},${center.lng});`).join('')});out center 300;`;
+  const res = await fetch('https://overpass-api.de/api/interpreter', { method:'POST', body:'data=' + encodeURIComponent(q) });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const { elements } = await res.json();
+  const catOf = t => sels.find(([, s]) => {
+    const [, key, op, val] = s.match(/\["(\w+)"(~|=)"(.+?)"\]/);
+    return op === '=' ? t[key] === val : new RegExp(val).test(t[key] || '');
+  })?.[0];
+  const known = new Set(PICKS.map(p => p.name.toLowerCase()));
+  return elements.map(e => ({
+    id: 'osm' + e.type[0] + e.id, src:'osm', name: e.tags.name, cat: catOf(e.tags),
+    lat: e.lat ?? e.center.lat, lng: e.lon ?? e.center.lon,
+    note: [e.tags.cuisine?.replace(/;/g, ', '), e.tags.opening_hours].filter(Boolean).join(' · '),
+  })).filter(p => p.cat && !known.has(p.name.toLowerCase()));
+}
+
+// Wikimedia Commons photo: scaled image URL and its file page (for the credit link).
+const commons = (file, width = 1400) => ({
+  src: `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file.replace(/ /g, '_'))}?width=${width}`,
+  page: `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(file.replace(/ /g, '_'))}`,
+});

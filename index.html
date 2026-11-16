@@ -285,25 +285,10 @@ const status = t => document.getElementById('status').textContent = t;
 
 // ---------- Live scan (OpenStreetMap / Overpass) ----------
 async function liveSearch() {
-  const c = map.getCenter(), r = 900;
-  const sels = [...S.cats].flatMap(k => CATS[k].osm.map(s => [k, s]));
-  if (!sels.length) return status('Turn on a category first');
+  if (![...S.cats].some(k => CATS[k].osm.length)) return status('Turn on a category first');
   status('Scanning…');
-  const q = `[out:json][timeout:20];(${sels.map(([, s]) => `nwr${s}["name"](around:${r},${c.lat},${c.lng});`).join('')});out center 150;`;
   try {
-    const res = await fetch('https://overpass-api.de/api/interpreter', { method:'POST', body:'data=' + encodeURIComponent(q) });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const { elements } = await res.json();
-    const catOf = t => sels.find(([, s]) => {
-      const [, key, op, val] = s.match(/\["(\w+)"(~|=)"(.+?)"\]/);
-      return op === '=' ? t[key] === val : new RegExp(val).test(t[key] || '');
-    })?.[0];
-    const known = new Set(PICKS.map(p => p.name.toLowerCase()));
-    const found = elements.map(e => ({
-      id: 'osm' + e.type[0] + e.id, src:'osm', name: e.tags.name, cat: catOf(e.tags),
-      lat: e.lat ?? e.center.lat, lng: e.lon ?? e.center.lon,
-      note: [e.tags.cuisine?.replace(/;/g, ', '), e.tags.opening_hours].filter(Boolean).join(' · '),
-    })).filter(p => p.cat && !known.has(p.name.toLowerCase()));
+    const found = await osmScan(map.getCenter(), 900, [...S.cats]);
     const ids = new Set(S.live.map(p => p.id));
     S.live.push(...found.filter(p => !ids.has(p.id)));
     status(`${found.length} found nearby`);

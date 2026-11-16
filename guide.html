@@ -79,6 +79,40 @@
   .ev ul a { color: var(--ink); text-decoration: none; display: flex; align-items: center; gap: 8px; min-block-size: 36px; }
   .ev ul a svg { color: var(--accent); }
 
+  /* photos (Wikimedia Commons, credited) */
+  figure.photo { margin: 24px 0; }
+  figure.photo img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 24px; background: var(--solid); }
+  figure.photo.tall img { aspect-ratio: 4 / 3; }
+  figure.hero-photo { margin: 30px auto 0; }
+  figure.hero-photo img { aspect-ratio: 21 / 9; border-radius: 28px; }
+  figcaption { margin-top: 8px; font-size: 12.5px; color: var(--mute); }
+  figcaption a { color: inherit; }
+  .ev.has-img { padding: 0; overflow: hidden; }
+  .ev.has-img > img { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; background: var(--rule); }
+  .ev.has-img > .in { display: flex; flex-direction: column; gap: 6px; padding: 16px 18px 18px; flex: 1; }
+  .ev .credit { font-size: 11.5px; color: var(--mute); }
+  .ev .credit a { color: inherit; }
+
+  /* explore map */
+  .xchips { display: flex; flex-wrap: wrap; gap: 6px; margin: 18px 0 0; }
+  .xchip { display: inline-flex; align-items: center; gap: 7px; border: 1.5px solid var(--rule); background: var(--solid); border-radius: 999px; padding: 0 13px 0 10px;
+           font: 600 13px/1 var(--sans); color: var(--mute); transition: all .2s; }
+  .xchip .d { width: 9px; height: 9px; border-radius: 50%; }
+  .xchip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+  .map.xmap { height: min(72vh, 640px); }
+  .xpin { width: 30px; height: 30px; border-radius: 50%; background: var(--solid); border: 2px solid currentColor; display: grid; place-items: center; box-shadow: 0 2px 8px rgb(0 0 0 / .25); cursor: pointer; }
+  .xpin svg.i { width: 15px; height: 15px; }
+  .xpin.osm { width: 11px; height: 11px; background: currentColor; border: 2px solid var(--solid); }
+  .xpin.osm svg { display: none; }
+  #xstatus { align-self: center; font-size: 13px; color: var(--mute); }
+  .maplibregl-popup-content { background: var(--solid); color: var(--ink); border-radius: 18px; padding: 14px 16px; box-shadow: var(--shadow); font-family: var(--sans); min-width: 220px; }
+  .maplibregl-popup-tip { display: none; }
+  .maplibregl-popup-close-button { font-size: 20px; padding: 4px 10px; color: var(--mute); }
+  .pop h3 { margin: 0 24px 2px 0; font-size: 18px; }
+  .pop .m { font-size: 12px; color: var(--mute); }
+  .pop p { margin: 6px 0 10px; font-size: 14px; line-height: 1.45; }
+  .pop .acts { display: flex; flex-wrap: wrap; gap: 6px; }
+
   footer { padding: 48px 0 80px; color: var(--mute); font-size: 14px; }
   footer ul { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
 </style>
@@ -88,7 +122,7 @@
 <nav class="bar glass" aria-label="Sections">
   <div class="wrap wide">
     <a href="#tue">Tue</a><a href="#wed">Wed</a><a href="#thu">Thu</a><a href="#fri">Fri</a>
-    <a href="#now">This week</a><a href="#hoods">Neighbourhoods</a>
+    <a href="#now">This week</a><a href="#explore">Explore</a><a href="#hoods">Neighbourhoods</a>
     <a class="app" href="index.html" id="appLink">Open the map</a>
   </div>
 </nav>
@@ -104,6 +138,7 @@
       <li>Dark by about 16:15 · bring a warm coat</li>
     </ul>
   </header>
+  <figure class="photo hero-photo wrap wide" data-photo="Berlin, Oberbaumbrücke in der blauen Stunde mit Spiegelung.jpg|Michabka|The Oberbaum Bridge between Kreuzberg and Friedrichshain at blue hour"></figure>
 
   <div class="wrap">
     <p class="lede">The last time in Berlin didn't land. This time the plan skips the checklist sights and goes where the city is strongest after dark: loud rooms, good beer and neighbourhoods that only wake up when the conference ends.</p>
@@ -113,6 +148,7 @@
 
   <section id="tue" class="wrap">
     <h2><small>Tuesday 17 November</small>Land, then Sophie Calle, then The Wedding Present</h2>
+    <figure class="photo" data-photo="Berlin - Hamburger Bahnhof Museum für Gegenwart (3).jpg|Fred Romero|Hamburger Bahnhof, the former railway station that's now a contemporary-art museum"></figure>
     <p>Drop the bags at the Maritim and walk about 20 minutes north-west to the <b>Hamburger Bahnhof</b>, a former railway station turned contemporary-art museum that turns 30 this year. Its new show is Sophie Calle's <i>Is It Better?</i>: photographs, text and found objects, several of them made in Berlin in the 1990s. It is an easy, quiet first afternoon after a flight.</p>
     <p>Dinner under the S-Bahn arches at <b>Brauhaus Lemke</b> by Hackescher Markt: house beer and plain, heavy food. Then the U8 south to Neukölln, where <b>The Wedding Present</b> play <i>Seamonsters</i> for its 35th anniversary at Hole44.</p>
     <div data-day="tue"></div>
@@ -121,6 +157,7 @@
 
   <section id="wed" class="wrap">
     <h2><small>Wednesday 18 November</small>The big rock night</h2>
+    <figure class="photo tall" data-photo="SO36, Oranienstraße 190, Berlin-Kreuzberg.jpg|Christian Alexander Otto|SO36 on Oranienstraße, the heart of Kreuzberg's rock-and-punk scene"></figure>
     <p>Wednesday has more rock on than any other night of the week, so pick one. The default is <b>The Pretty Reckless</b> at Huxleys Neue Welt on Hasenheide, a mid-sized hall where you can still see the stage. If arena scale is the point, <b>Muse</b> play Uber Arena the same night on the Wow! Signal tour, and <b>Papa Roach</b> are at the Velodrom.</p>
     <p>Before the show, go to Mehringdamm for <b>Curry 36</b>: currywurst standing at the counter, done in fifteen minutes. Afterwards, <b>Yorckschlösschen</b> is an old Kreuzberg jazz-and-blues pub that stays open late.</p>
     <div data-day="wed"></div>
@@ -128,6 +165,7 @@
 
   <section id="thu" class="wrap">
     <h2><small>Thursday 19 November</small>Street food, folk metal, craft beer</h2>
+    <figure class="photo" data-photo="Markthalle Neun 08.02.2015 16-33-23.JPG|Dirk Ingo Franke|Inside Markthalle Neun, Kreuzberg"></figure>
     <p>Leave the conference a little early. Thursday evening is <b>Street Food Thursday</b> at Markthalle Neun, a 19th-century market hall in Kreuzberg. Eat from three stalls, not one.</p>
     <p>Then it's about 25 minutes on foot to Huxleys again for <b>Eluveitie</b>: Swiss folk metal with hurdy-gurdy and bagpipes over heavy guitars. Finish at <b>Hopfenreich</b>, one of the city's best craft-beer bars.</p>
     <p>The quieter alternative is near the hotel. The <b>rejazz-festival</b> opens that night at Kunstfabrik Schlot, a jazz cellar on Invalidenstraße, with Israeli harmonica player Ariel Bart's trio.</p>
@@ -142,14 +180,21 @@
 
   <section id="now" class="wrap wide">
     <h2><small>Happening this week</small>Worth catching while you're there</h2>
-    <p style="max-width:720px">Exhibitions, gigs and one talk that fall inside your four days. Most Christmas markets don't open until after you've left.</p>
+    <p style="max-width:720px">Exhibitions, gigs and one talk that fall inside your four days. Most Christmas markets open from 23 November, after you've left, but six are already running. They're on the Explore map below.</p>
     <div class="cards" id="events"></div>
+  </section>
+
+  <section id="explore" class="wrap wide">
+    <h2><small>Explore</small>The whole city on one map</h2>
+    <p style="max-width:720px">Berlin isn't one centre but six or seven, each with its own evening. The black labels are the centres. Use the filters to show pubs, music, shops, the winter markets that are open this week, and the sights. Zoom in anywhere and tap <b>Every pub &amp; shop here</b> to add every place OpenStreetMap knows in that area.</p>
+    <div class="xchips" id="xchips" aria-label="Filters"></div>
+    <div class="map xmap" id="xmap" aria-label="Interactive map of Berlin's centres and places"></div>
+    <div class="maptools"><button class="btn pri" id="xscan">Every pub &amp; shop here</button><span id="xstatus" role="status"></span></div>
   </section>
 
   <section id="hoods" class="wrap wide">
     <h2><small>Neighbourhoods</small>Where to spend an evening</h2>
-    <p style="max-width:720px">Berlin isn't one centre but many. These are the five worth your evenings this week, with a few places in each.</p>
-    <div class="map" id="hoodmap" role="img" aria-label="Map of central Berlin with the five neighbourhoods marked"></div>
+    <p style="max-width:720px">Each centre in a line, with the places worth walking to.</p>
     <div class="cards" id="hoods-cards"></div>
   </section>
 
@@ -178,6 +223,13 @@ const byId = id => PICKS.find(p => p.id === id);
 const title = p => p.gig ? p.artist : p.name;
 const dir = (p, from) => dirTo(p, from && dist(from, p) <= 3500 ? 'walking' : 'transit');
 const goBtn = (p, from) => `<a class="go" href="${dir(p, from)}" target="_blank" rel="noopener" aria-label="Directions to ${esc(title(p))} in Google Maps">${svg('nav')}</a>`;
+
+// ---------- Photos: <figure data-photo="file|photographer|caption"> ----------
+document.querySelectorAll('figure[data-photo]').forEach(f => {
+  const [file, by, cap] = f.dataset.photo.split('|'), c = commons(file);
+  f.innerHTML = `<img src="${c.src}" alt="${esc(cap)}" loading="lazy" decoding="async">
+    <figcaption>${esc(cap)}. Photo: <a href="${c.page}" target="_blank" rel="noopener">${esc(by)}, Wikimedia Commons</a></figcaption>`;
+});
 
 // ---------- Day timelines + route maps (data from places.js) ----------
 const pending = [];
@@ -215,8 +267,12 @@ const EVENTS = [
   { when:'Thu 19 · 19:00', title:'Eluveitie', at:'gig-eluveitie', hot:true, text:'Swiss folk metal at Huxleys Neue Welt.' },
   { when:'Thu 19–Sat 21', title:'rejazz-festival', at:'gig-rejazz',
     text:'Women-in-jazz festival at Kunstfabrik Schlot. Night one opens with Ariel Bart\'s trio.' },
+  { when:'From Wed 18', title:'Winter market at Humboldt Forum', at:'mkt-humboldt',
+    text:'Opens mid-week on Schlossplatz, opposite the cathedral and a short walk from the hotel. The easiest Glühwein of the trip.' },
+  { when:'Already open', title:'Christmas market at the Gedächtniskirche', at:'mkt-gedaechtnis',
+    text:'One of the first big markets of the season, on Breitscheidplatz in City West. Pair it with KaDeWe or a set at A-Trane.' },
   { when:'Every day this week', title:'Winterwelt Potsdamer Platz', at:'winterwelt',
-    text:'The first winter market of the season, with a 70 m toboggan slide and the ice rink next door. Most other Christmas markets open from 22 November, after you leave.' },
+    text:'A 70 m toboggan slide and an ice rink in the middle of the city. Its market stalls and most other Christmas markets open from 23 November, after you leave.' },
 ];
 document.getElementById('events').innerHTML = EVENTS.map((e, i) => {
   const p = e.at ? byId(e.at) : e.place;
@@ -226,47 +282,86 @@ document.getElementById('events').innerHTML = EVENTS.map((e, i) => {
     <a class="btn" href="${mapsLink({ name: p.name, lat: p.lat, lng: p.lng })}" target="_blank" rel="noopener">${svg('ext')}Maps</a></div></article>`;
 }).join('');
 
-// ---------- Neighbourhoods ----------
-const HOODS = [
-  { name:'Mitte', lat:52.5225, lng:13.4000, picks:['hbf','neues','lemke','bflat','schlot'],
-    text:'Where the conference is. Museums by day; brewpub arches and jazz cellars around Hackescher Markt by night.' },
-  { name:'Kreuzberg', lat:52.4985, lng:13.4210, picks:['so36','markthalle','hopfenreich','wuergeengel','curry36'],
-    text:'The rock-and-punk heartland: SO36 on Oranienstraße, Markthalle Neun, late cocktail bars, the Mehringdamm snack strip.' },
-  { name:'Neukölln', lat:52.4810, lng:13.4240, picks:['gig-reckless','gig-wedding','gig-eluveitie'],
-    text:'Younger and louder. Huxleys on Hasenheide and Hole44 on Hermannstraße are where most of this week\'s rock nights land.' },
-  { name:'Friedrichshain', lat:52.5085, lng:13.4500, picks:['gig-muse','esg','gig-hausswolff','csm'],
-    text:'Arena shows and the East Side Gallery along the Spree; the Revaler Straße strip stays up late.' },
-  { name:'Prenzlauer Berg', lat:52.5395, lng:13.4110, picks:['prater','bonanza','konnopke'],
-    text:'Calmer, prettier streets, an old beer hall and serious coffee, just north of Mitte.' },
-];
-document.getElementById('hoods-cards').innerHTML = HOODS.map((h, i) => `
-  <article class="ev" style="animation-delay:${i * 40}ms"><h3>${h.name}</h3><p>${h.text}</p>
-    <ul>${h.picks.map(byId).map(p => `<li><a href="${dirTo(p, 'transit')}" target="_blank" rel="noopener">${svg('nav')}${esc(title(p))}</a></li>`).join('')}</ul></article>`).join('');
+// ---------- Neighbourhoods (HOODS in places.js) ----------
+document.getElementById('hoods-cards').innerHTML = HOODS.map((h, i) => { const c = commons(h.img[0], 900); return `
+  <article class="ev has-img" style="animation-delay:${i * 40}ms">
+    <img src="${c.src}" alt="${esc(h.name)}" loading="lazy" decoding="async">
+    <div class="in"><h3>${esc(h.name)}</h3><p>${esc(h.text)}</p>
+      <ul>${h.picks.map(byId).map(p => `<li><a href="${dirTo(p, 'transit')}" target="_blank" rel="noopener">${svg('nav')}${esc(title(p))}</a></li>`).join('')}</ul>
+      <span class="credit">Photo: <a href="${c.page}" target="_blank" rel="noopener">${esc(h.img[1])}, Wikimedia Commons</a></span></div>
+  </article>`; }).join('');
 
 // ---------- Maps: built when scrolled into view, static (page scroll stays smooth) ----------
-function drawMap(node, pts, labelled) {
+function drawMap(node, pts) {
   const map = new maplibregl.Map({ container: node, style: MAP_STYLE, interactive: false, attributionControl: { compact: true },
     bounds: new maplibregl.LngLatBounds(pts.map(ll).reduce((b, c) => b.extend(c), new maplibregl.LngLatBounds(ll(pts[0]), ll(pts[0])))),
     fitBoundsOptions: { padding: 50, maxZoom: 15 } });
   map.on('load', () => {
-    if (!labelled && pts.length > 1) {
+    if (pts.length > 1) {
       map.addSource('r', { type:'geojson', data:{ type:'Feature', geometry:{ type:'LineString', coordinates: pts.map(ll) } } });
       map.addLayer({ id:'rc', type:'line', source:'r', layout:{ 'line-join':'round', 'line-cap':'round' }, paint:{ 'line-color':'#ffffff', 'line-width':8 } });
       map.addLayer({ id:'rf', type:'line', source:'r', layout:{ 'line-join':'round', 'line-cap':'round' }, paint:{ 'line-color':'#2f5bd3', 'line-width':4 } });
     }
   });
-  pts.forEach((p, i) => new maplibregl.Marker({ element: el(labelled
-    ? `<div class="hood-pin">${esc(p.name)}</div>`
-    : `<div class="n-pin ${p.gig ? 'gig' : ''}">${i + 1}</div>`) }).setLngLat(ll(p)).addTo(map));
+  pts.forEach((p, i) => new maplibregl.Marker({ element: el(`<div class="n-pin ${p.gig ? 'gig' : ''}">${i + 1}</div>`) }).setLngLat(ll(p)).addTo(map));
 }
-pending.push([document.getElementById('hoodmap'), HOODS, true]);
 const io = new IntersectionObserver(entries => entries.forEach(e => {
   if (!e.isIntersecting) return;
   io.unobserve(e.target);
-  const [node, pts, labelled] = pending.find(([n]) => n === e.target);
-  drawMap(node, pts, labelled);
+  const [node, pts] = pending.find(([n]) => n === e.target);
+  drawMap(node, pts);
 }), { rootMargin: '300px' });
 pending.forEach(([node]) => io.observe(node));
+
+// ---------- Explore: interactive map of centres + filterable places ----------
+const X = { cats: new Set(['pubs', 'music', 'shops', 'markets', 'sights']), live: [], marks: [], map: null };
+const XCATS = Object.keys(CATS).filter(k => k !== 'base');
+const popup = p => `<div class="pop"><h3>${esc(title(p))}</h3><div class="m">${CATS[p.cat].label}${p.src === 'osm' ? ' · OpenStreetMap' : ''}</div>
+  <p>${esc(p.note || '')}</p><div class="acts"><a class="btn pri" href="${dirTo(p, 'transit')}" target="_blank" rel="noopener">${svg('nav')}Directions</a>
+  <a class="btn" href="${mapsLink(p)}" target="_blank" rel="noopener" aria-label="Open ${esc(p.name)} in Google Maps">${svg('ext')}</a></div></div>`;
+function xChips() {
+  document.getElementById('xchips').innerHTML = XCATS.map(k => `<button class="xchip" data-x="${k}" aria-pressed="${X.cats.has(k)}">
+    <span class="d" style="background:${CATS[k].color}" aria-hidden="true"></span>${CATS[k].label}</button>`).join('');
+}
+function xRender() {
+  if (!X.map) return;
+  X.marks.forEach(m => m.remove()); X.marks = [];
+  const add = (node, p, pop) => {
+    const m = new maplibregl.Marker({ element: node }).setLngLat(ll(p));
+    if (pop) m.setPopup(new maplibregl.Popup({ offset: 14, maxWidth: '280px' }).setHTML(pop));
+    X.marks.push(m.addTo(X.map));
+  };
+  [...PICKS, ...X.live].filter(p => X.cats.has(p.cat)).forEach(p =>
+    add(el(`<div class="xpin ${p.src === 'osm' ? 'osm' : ''}" style="color:${CATS[p.cat].color}" title="${esc(title(p))}">${svg(p.cat)}</div>`), p, popup(p)));
+  HOODS.forEach(h => add(el(`<div class="hood-pin">${esc(h.name)}</div>`), h));
+}
+document.getElementById('xchips').addEventListener('click', e => {
+  const b = e.target.closest('[data-x]'); if (!b) return;
+  X.cats.has(b.dataset.x) ? X.cats.delete(b.dataset.x) : X.cats.add(b.dataset.x);
+  xChips(); xRender();
+});
+document.getElementById('xscan').onclick = async () => {
+  const st = document.getElementById('xstatus');
+  if (!X.map) return;
+  if (X.map.getZoom() < 13.5) return st.textContent = 'Zoom in to one neighbourhood first.';
+  st.textContent = 'Asking OpenStreetMap…';
+  try {
+    const found = await osmScan(X.map.getCenter(), 1200, ['pubs', 'shops']);
+    const ids = new Set(X.live.map(p => p.id));
+    X.live.push(...found.filter(p => !ids.has(p.id)));
+    ['pubs', 'shops'].forEach(k => X.cats.add(k));
+    st.textContent = `${found.length} pubs and shops added.`;
+    xChips(); xRender();
+  } catch (err) { st.textContent = 'OpenStreetMap search failed: ' + err.message; }
+};
+xChips();
+new IntersectionObserver((entries, obs) => {
+  if (!entries[0].isIntersecting) return;
+  obs.disconnect();
+  X.map = new maplibregl.Map({ container: 'xmap', style: MAP_STYLE, center: [13.395, 52.512], zoom: 11.8, cooperativeGestures: true, attributionControl: { compact: true } });
+  X.map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+  X.map.on('load', xRender);
+}, { rootMargin: '300px' }).observe(document.getElementById('xmap'));
 </script>
 </body>
 </html>
