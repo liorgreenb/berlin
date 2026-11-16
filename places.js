@@ -49,8 +49,11 @@ const PICKS = [
   G('gig-papa','Papa Roach','Velodrom',52.5300,13.4520,'wed','19:00','Rise of the Roach tour'),
   G('gig-evergrey','Evergrey','Hole44',52.4790,13.4247,'wed','','Prog metal'),
   G('gig-eluveitie','Eluveitie','Huxleys Neue Welt',52.4870,13.4205,'thu','19:00','Folk metal'),
+  G('gig-rejazz','rejazz-festival','Kunstfabrik Schlot',52.5310,13.3870,'thu','','Women-in-jazz festival, night 1 opens with Ariel Bart\'s trio'),
   G('gig-hausswolff','Anna von Hausswolff','Astra Kulturhaus',52.5072,13.4545,'thu','','Heavy, drone-y organ rock'),
   // sights
+  P('hbf','sights','Hamburger Bahnhof',52.5284,13.3721,'Sophie Calle: Is It Better? Her first Berlin solo show in 20+ years. Closed Mondays.'),
+  P('winterwelt','sights','Winterwelt Potsdamer Platz',52.5096,13.3760,'Early winter market with a 70 m toboggan slide; ice rink next door.'),
   P('traenen','sights','Tränenpalast',52.5203,13.3870,'Free museum on the Cold War border crossing, next to the venue.'),
   P('dussmann','sights','Dussmann KulturKaufhaus',52.5180,13.3888,'Huge bookshop, 2 min from the venue.'),
   P('neues','sights','Neues Museum',52.5206,13.3977,'Museum Island. Home of the Nefertiti bust.'),
@@ -66,12 +69,12 @@ const PICKS = [
 
 // Suggested plan per day: [place id, suggested time, optional alternative ids]. Gig times are from listings; others are suggestions.
 const DAYS = [
-  { k:'tue', label:'Tue 17', hint:'Land around noon. Easy afternoon, then indie rock in Neukölln.',
-    suggest:[['ber','12:00'],['venue','13:30'],['traenen','15:00'],['lemke','18:00'],['gig-wedding','',['gig-napa']]] },
+  { k:'tue', label:'Tue 17', hint:'Land around noon. Sophie Calle in the afternoon, then indie rock in Neukölln.',
+    suggest:[['ber','12:00'],['venue','13:30'],['hbf','15:00',['traenen']],['lemke','18:00'],['gig-wedding','',['gig-napa']]] },
   { k:'wed', label:'Wed 18', hint:'Conference day, then hard rock at Huxleys and a late blues pub.',
     suggest:[['venue','18:00'],['curry36','19:00'],['gig-reckless','20:00',['gig-muse','gig-papa','gig-evergrey']],['yorck','23:00']] },
   { k:'thu', label:'Thu 19', hint:'Leave a little early: Street Food Thursday, then folk metal, then craft beer.',
-    suggest:[['venue','17:00'],['markthalle','17:30'],['gig-eluveitie','19:00',['gig-hausswolff']],['hopfenreich','22:30']] },
+    suggest:[['venue','17:00'],['markthalle','17:30'],['gig-eluveitie','19:00',['gig-rejazz','gig-hausswolff']],['hopfenreich','22:30']] },
   { k:'fri', label:'Fri 20', hint:'Coffee, then head to BER.',
     suggest:[['barn','08:00'],['ber','']] },
 ];

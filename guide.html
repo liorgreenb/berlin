@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Three rock nights and a conference: a Berlin week</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<link rel="stylesheet" href="theme.css">
+<style>
+  body { font-size: 17px; line-height: 1.65; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 max(20px, env(safe-area-inset-left, 0px)); }
+  .wide { max-width: 980px; }
+
+  /* top bar */
+  .bar { position: sticky; top: 0; z-index: 5; border-radius: 0; box-shadow: none; border-bottom: 1px solid var(--rule); }
+  .bar .wrap { display: flex; align-items: center; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-block: 8px; }
+  .bar .wrap::-webkit-scrollbar { display: none; }
+  .bar a { flex: none; display: inline-flex; align-items: center; min-block-size: var(--target); padding: 0 12px; border-radius: 999px;
+           font: 600 13px/1 var(--sans); color: var(--mute); text-decoration: none; }
+  .bar a:hover { color: var(--ink); }
+  .bar a.app { margin-left: auto; background: var(--accent); color: var(--on-accent); gap: 6px; }
+
+  /* hero */
+  header.hero { padding: 64px 0 28px; }
+  .kicker { font: 600 12px/1.3 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin: 0 0 14px; }
+  h1 { margin: 0; font: 800 clamp(38px, 8vw, 64px)/1.02 var(--sans); letter-spacing: -.045em; }
+  h1 i { color: var(--hot); }
+  .dek { margin: 18px 0 0; font-size: 20px; line-height: 1.5; color: var(--mute); max-width: 40ch; }
+  .facts { display: flex; flex-wrap: wrap; gap: 8px; margin: 26px 0 0; padding: 0; }
+  .facts li { padding: 7px 13px; border-radius: 999px; background: var(--solid); border: 1px solid var(--rule); font: 600 13px/1.2 var(--sans); }
+
+  /* article */
+  section { padding: 44px 0 8px; scroll-margin-top: 64px; }
+  h2 { margin: 0 0 6px; font: 800 clamp(28px, 5vw, 38px)/1.1 var(--sans); letter-spacing: -.035em; }
+  h2 small { display: block; margin-bottom: 8px; font: 600 12px/1.3 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+  h3 { margin: 28px 0 6px; font: 700 21px/1.25 var(--sans); letter-spacing: -.02em; }
+  p { margin: 14px 0; }
+  .lede { font-size: 19px; }
+  a { color: var(--accent); text-underline-offset: 3px; }
+  hr { border: 0; border-top: 1px solid var(--rule); margin: 40px 0 0; }
+  .note { margin: 18px 0; padding: 14px 16px; border-radius: 16px; background: var(--solid); border: 1px solid var(--rule); font-size: 15px; }
+  .note b { color: var(--hot-ink); }
+
+  /* day timeline */
+  .tl { margin: 22px 0 8px; }
+  .stop { display: grid; grid-template-columns: 58px 1fr; column-gap: 12px; }
+  .stop .tm { padding-top: 13px; font: 600 14px/1 var(--sans); color: var(--mute); font-variant-numeric: tabular-nums; }
+  .stop .card { display: flex; align-items: center; gap: 12px; padding: 9px 0 9px 16px; border-left: 2px solid var(--rule); min-width: 0; }
+  .stop .t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .stop .n { font: 600 16px/1.3 var(--sans); }
+  .stop .s { font-size: 13.5px; line-height: 1.4; color: var(--mute); }
+  .stop .go { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: var(--accent); background: var(--solid); border: 1px solid var(--rule); }
+  .stop.gig .tm { color: var(--hot-ink); }
+  .stop.gig .card { margin: 3px 0; padding: 13px; border: 0; border-radius: 18px; background: var(--hot-bg); }
+  .stop.gig .n { font: 700 19px/1.2 var(--sans); letter-spacing: -.015em; }
+  .stop.gig .s { color: var(--hot-ink); }
+  .leg { grid-column: 2; padding: 0 0 0 16px; border-left: 2px dotted var(--rule); font: 500 12.5px/2.3 var(--sans); color: var(--mute); }
+  .alts { grid-column: 2; padding: 2px 0 6px 16px; font-size: 13.5px; color: var(--mute); }
+
+  /* maps */
+  .map { position: relative; height: 340px; margin: 22px 0 6px; border-radius: 24px; overflow: hidden; background: var(--solid); border: 1px solid var(--rule); }
+  .maptools { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; }
+  .n-pin { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; font: 700 12px/1 var(--sans); border: 2.5px solid #fff; box-shadow: 0 2px 8px rgb(0 0 0 / .3); }
+  .n-pin.gig { background: var(--hot); color: #fff; }
+  .hood-pin { padding: 6px 12px; border-radius: 999px; background: #15181d; color: #fff; font: 700 13px/1 var(--sans); box-shadow: 0 4px 14px rgb(0 0 0 / .3); white-space: nowrap; }
+
+  /* event + neighbourhood cards */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin: 22px 0 0; }
+  .ev { display: flex; flex-direction: column; gap: 6px; padding: 18px; border-radius: 22px; background: var(--solid); border: 1px solid var(--rule); animation: rise .5s var(--spring) both; }
+  .ev .when { font: 700 12px/1.3 var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+  .ev.hot .when { color: var(--hot-ink); }
+  .ev h3 { margin: 0; font-size: 20px; }
+  .ev p { margin: 0; font-size: 15px; line-height: 1.5; color: var(--mute); }
+  .ev .acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 10px; }
+  .ev ul { display: flex; flex-direction: column; gap: 2px; margin: 4px 0 0; font-size: 15px; }
+  .ev ul a { color: var(--ink); text-decoration: none; display: flex; align-items: center; gap: 8px; min-block-size: 36px; }
+  .ev ul a svg { color: var(--accent); }
+
+  footer { padding: 48px 0 80px; color: var(--mute); font-size: 14px; }
+  footer ul { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<nav class="bar glass" aria-label="Sections">
+  <div class="wrap wide">
+    <a href="#tue">Tue</a><a href="#wed">Wed</a><a href="#thu">Thu</a><a href="#fri">Fri</a>
+    <a href="#now">This week</a><a href="#hoods">Neighbourhoods</a>
+    <a class="app" href="index.html" id="appLink">Open the map</a>
+  </div>
+</nav>
+
+<main>
+  <header class="hero wrap">
+    <p class="kicker">MLcon week · 17–20 November 2026</p>
+    <h1>One conference, <i>three rock nights</i>, and a Berlin worth a second chance.</h1>
+    <p class="dek">A day-by-day plan built around the talks, the gigs, and the pubs in between, plus what's on in the city this week.</p>
+    <ul class="facts">
+      <li>Base: Maritim proArte, Friedrichstraße</li>
+      <li>Land Tue ~12:00 · leave Fri morning</li>
+      <li>Dark by about 16:15 · bring a warm coat</li>
+    </ul>
+  </header>
+
+  <div class="wrap">
+    <p class="lede">The last time in Berlin didn't land. This time the plan skips the checklist sights and goes where the city is strongest after dark: loud rooms, good beer and neighbourhoods that only wake up when the conference ends.</p>
+    <p>Days belong to MLcon. Evenings start around six and go south and east: Kreuzberg and Neukölln for the gigs, Mitte for the jazz cellars a few minutes from the hotel. Every stop below links straight to Google Maps directions, and the same plans load in the <a href="index.html">map app</a> under Plan.</p>
+    <div class="note"><b>Getting in from BER:</b> the airport is in fare zone C, so buy an ABC ticket for the ride in. The FEX airport express or the S-Bahn gets you into the centre in about 35–45 minutes. Inside the city an AB ticket covers everything in this guide.</div>
+  </div>
+
+  <section id="tue" class="wrap">
+    <h2><small>Tuesday 17 November</small>Land, then Sophie Calle, then The Wedding Present</h2>
+    <p>Drop the bags at the Maritim and walk about 20 minutes north-west to the <b>Hamburger Bahnhof</b>, a former railway station turned contemporary-art museum that turns 30 this year. Its new show is Sophie Calle's <i>Is It Better?</i>: photographs, text and found objects, several of them made in Berlin in the 1990s. It is an easy, quiet first afternoon after a flight.</p>
+    <p>Dinner under the S-Bahn arches at <b>Brauhaus Lemke</b> by Hackescher Markt: house beer and plain, heavy food. Then the U8 south to Neukölln, where <b>The Wedding Present</b> play <i>Seamonsters</i> for its 35th anniversary at Hole44.</p>
+    <div data-day="tue"></div>
+    <div class="note"><b>Or, if the ML itch wins:</b> the BLISS AI speaker series has Jonas Geiping (Max Planck Institute) at TU Berlin's maths building at 19:00 the same evening. It overlaps with the gig, so it's one or the other.</div>
+  </section>
+
+  <section id="wed" class="wrap">
+    <h2><small>Wednesday 18 November</small>The big rock night</h2>
+    <p>Wednesday has more rock on than any other night of the week, so pick one. The default is <b>The Pretty Reckless</b> at Huxleys Neue Welt on Hasenheide, a mid-sized hall where you can still see the stage. If arena scale is the point, <b>Muse</b> play Uber Arena the same night on the Wow! Signal tour, and <b>Papa Roach</b> are at the Velodrom.</p>
+    <p>Before the show, go to Mehringdamm for <b>Curry 36</b>: currywurst standing at the counter, done in fifteen minutes. Afterwards, <b>Yorckschlösschen</b> is an old Kreuzberg jazz-and-blues pub that stays open late.</p>
+    <div data-day="wed"></div>
+  </section>
+
+  <section id="thu" class="wrap">
+    <h2><small>Thursday 19 November</small>Street food, folk metal, craft beer</h2>
+    <p>Leave the conference a little early. Thursday evening is <b>Street Food Thursday</b> at Markthalle Neun, a 19th-century market hall in Kreuzberg. Eat from three stalls, not one.</p>
+    <p>Then it's about 25 minutes on foot to Huxleys again for <b>Eluveitie</b>: Swiss folk metal with hurdy-gurdy and bagpipes over heavy guitars. Finish at <b>Hopfenreich</b>, one of the city's best craft-beer bars.</p>
+    <p>The quieter alternative is near the hotel. The <b>rejazz-festival</b> opens that night at Kunstfabrik Schlot, a jazz cellar on Invalidenstraße, with Israeli harmonica player Ariel Bart's trio.</p>
+    <div data-day="thu"></div>
+  </section>
+
+  <section id="fri" class="wrap">
+    <h2><small>Friday 20 November</small>Coffee and out</h2>
+    <p>One good coffee at <b>The Barn</b> on Auguststraße, a short walk from the hotel, then the train to BER. Allow an hour door to gate, plus the airport's own queues.</p>
+    <div data-day="fri"></div>
+  </section>
+
+  <section id="now" class="wrap wide">
+    <h2><small>Happening this week</small>Worth catching while you're there</h2>
+    <p style="max-width:720px">Exhibitions, gigs and one talk that fall inside your four days. Most Christmas markets don't open until after you've left.</p>
+    <div class="cards" id="events"></div>
+  </section>
+
+  <section id="hoods" class="wrap wide">
+    <h2><small>Neighbourhoods</small>Where to spend an evening</h2>
+    <p style="max-width:720px">Berlin isn't one centre but many. These are the five worth your evenings this week, with a few places in each.</p>
+    <div class="map" id="hoodmap" role="img" aria-label="Map of central Berlin with the five neighbourhoods marked"></div>
+    <div class="cards" id="hoods-cards"></div>
+  </section>
+
+  <footer class="wrap">
+    <hr>
+    <p>Times for gigs come from the venues' listings; other times are suggestions. Check doors and tickets before you go.</p>
+    <b>Sources</b>
+    <ul>
+      <li><a href="https://www.smb.museum/ausstellungen/detail/sophie-calle/">Staatliche Museen zu Berlin: Sophie Calle, Is It Better?</a></li>
+      <li><a href="https://www.berlin.de/en/events/7306547-2842498-rejazz-festival.en.html">berlin.de: rejazz-festival 2026</a></li>
+      <li><a href="https://www.uber-arena.de/en/events/detail/muse_2026/">Uber Arena: Muse, 18.11.2026</a></li>
+      <li><a href="https://www.berlin.de/en/events/november/">berlin.de: Berlin events in November 2026</a></li>
+      <li><a href="https://www.mvp.de/berlin/veranstaltungen/konzerte/?from=320">mvp.de: Konzerte in Berlin</a></li>
+      <li><a href="https://www.meetup.com/find/de--berlin/">Meetup: AI Series, Jonas Geiping at TU Berlin</a></li>
+      <li><a href="https://www.visitberlin.de/de/weihnachtsmarkt-potsdamer-platz-berlin">visitBerlin: Winterwelt am Potsdamer Platz</a></li>
+      <li><a href="https://www.visitberlin.de/de/link-teaser/weihnachtsmaerkte">visitBerlin: when the Christmas markets open</a></li>
+    </ul>
+  </footer>
+</main>
+
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="lib.js"></script>
+<script src="places.js"></script>
+<script>
+const byId = id => PICKS.find(p => p.id === id);
+const title = p => p.gig ? p.artist : p.name;
+const dir = (p, from) => dirTo(p, from && dist(from, p) <= 3500 ? 'walking' : 'transit');
+const goBtn = (p, from) => `<a class="go" href="${dir(p, from)}" target="_blank" rel="noopener" aria-label="Directions to ${esc(title(p))} in Google Maps">${svg('nav')}</a>`;
+
+// ---------- Day timelines + route maps (data from places.js) ----------
+const pending = [];
+DAYS.forEach(d => {
+  const host = document.querySelector(`[data-day="${d.k}"]`);
+  const stops = d.suggest.map(([id, time, alts]) => ({ ...byId(id), time: time || byId(id).time || '', alts: alts || [] }));
+  host.innerHTML = `<ol class="tl" aria-label="${d.label} timeline">${stops.map((p, i) => `
+    <li class="stop ${p.gig ? 'gig' : ''}">
+      ${i ? `<span></span><span class="leg">${walk(dist(stops[i-1], p))}</span>` : ''}
+      <span class="tm">${p.time}</span>
+      <div class="card">${p.gig ? `<span class="ico" aria-hidden="true" style="background:var(--hot);color:#fff">${svg('music')}</span>` : ''}
+        <span class="t"><span class="n">${esc(title(p))}</span><span class="s">${p.gig ? esc(p.venue) + ' · ' : ''}${esc(p.note || CATS[p.cat].label)}</span></span>
+        ${goBtn(p, stops[i-1])}</div>
+      ${p.alts.length ? `<span></span><span class="alts">Or: ${p.alts.map(a => esc(title(byId(a)))).join(' · ')}</span>` : ''}
+    </li>`).join('')}</ol>
+    <div class="map" role="img" aria-label="Map of the ${d.label} route"></div>
+    <div class="maptools">
+      ${stops.length > 1 ? `<a class="btn pri" href="${routeLink(stops)}" target="_blank" rel="noopener">${svg('walk')}Whole day in Google Maps</a>` : ''}
+      <a class="btn" href="index.html">Edit in the map app</a>
+    </div>`;
+  // The airport sits ~20 km out; keep it off the route map so the city stays readable.
+  pending.push([host.querySelector('.map'), stops.filter(p => dist(p, VENUE) < 10000)]);
+});
+
+// ---------- Events this week ----------
+const EVENTS = [
+  { when:'Now until spring 2027 · closed Mondays', title:'Sophie Calle: Is It Better?', at:'hbf',
+    text:'Her first solo show in Berlin in over 20 years, at Hamburger Bahnhof for the museum\'s 30th birthday.' },
+  { when:'Tue 17 · 19:00', title:'AI Series: Jonas Geiping (MPI)', place:{ name:'TU Berlin Mathematikgebäude', lat:52.5135, lng:13.3245 },
+    text:'BLISS AI speaker series talk at TU Berlin. Clashes with Tuesday\'s gig, so choose one.' },
+  { when:'Tue 17', title:'The Wedding Present', at:'gig-wedding', hot:true, text:'Seamonsters 35th-anniversary tour, Hole44 in Neukölln.' },
+  { when:'Wed 18 · 20:00', title:'Muse', at:'gig-muse', hot:true, text:'Wow! Signal tour at Uber Arena. Tickets may be resale only.' },
+  { when:'Wed 18 · 20:00', title:'The Pretty Reckless', at:'gig-reckless', hot:true, text:'Hard rock at Huxleys Neue Welt. The default pick for Wednesday.' },
+  { when:'Wed 18 · 19:00', title:'Papa Roach', at:'gig-papa', hot:true, text:'Rise of the Roach tour at the Velodrom.' },
+  { when:'Thu 19 · 19:00', title:'Eluveitie', at:'gig-eluveitie', hot:true, text:'Swiss folk metal at Huxleys Neue Welt.' },
+  { when:'Thu 19–Sat 21', title:'rejazz-festival', at:'gig-rejazz',
+    text:'Women-in-jazz festival at Kunstfabrik Schlot. Night one opens with Ariel Bart\'s trio.' },
+  { when:'Every day this week', title:'Winterwelt Potsdamer Platz', at:'winterwelt',
+    text:'The first winter market of the season, with a 70 m toboggan slide and the ice rink next door. Most other Christmas markets open from 22 November, after you leave.' },
+];
+document.getElementById('events').innerHTML = EVENTS.map((e, i) => {
+  const p = e.at ? byId(e.at) : e.place;
+  return `<article class="ev ${e.hot ? 'hot' : ''}" style="animation-delay:${i * 40}ms">
+    <span class="when">${esc(e.when)}</span><h3>${esc(e.title)}</h3><p>${esc(e.text)}</p>
+    <div class="acts"><a class="btn pri" href="${dirTo(p, 'transit')}" target="_blank" rel="noopener">${svg('nav')}Directions</a>
+    <a class="btn" href="${mapsLink({ name: p.name, lat: p.lat, lng: p.lng })}" target="_blank" rel="noopener">${svg('ext')}Maps</a></div></article>`;
+}).join('');
+
+// ---------- Neighbourhoods ----------
+const HOODS = [
+  { name:'Mitte', lat:52.5225, lng:13.4000, picks:['hbf','neues','lemke','bflat','schlot'],
+    text:'Where the conference is. Museums by day; brewpub arches and jazz cellars around Hackescher Markt by night.' },
+  { name:'Kreuzberg', lat:52.4985, lng:13.4210, picks:['so36','markthalle','hopfenreich','wuergeengel','curry36'],
+    text:'The rock-and-punk heartland: SO36 on Oranienstraße, Markthalle Neun, late cocktail bars, the Mehringdamm snack strip.' },
+  { name:'Neukölln', lat:52.4810, lng:13.4240, picks:['gig-reckless','gig-wedding','gig-eluveitie'],
+    text:'Younger and louder. Huxleys on Hasenheide and Hole44 on Hermannstraße are where most of this week\'s rock nights land.' },
+  { name:'Friedrichshain', lat:52.5085, lng:13.4500, picks:['gig-muse','esg','gig-hausswolff','csm'],
+    text:'Arena shows and the East Side Gallery along the Spree; the Revaler Straße strip stays up late.' },
+  { name:'Prenzlauer Berg', lat:52.5395, lng:13.4110, picks:['prater','bonanza','konnopke'],
+    text:'Calmer, prettier streets, an old beer hall and serious coffee, just north of Mitte.' },
+];
+document.getElementById('hoods-cards').innerHTML = HOODS.map((h, i) => `
+  <article class="ev" style="animation-delay:${i * 40}ms"><h3>${h.name}</h3><p>${h.text}</p>
+    <ul>${h.picks.map(byId).map(p => `<li><a href="${dirTo(p, 'transit')}" target="_blank" rel="noopener">${svg('nav')}${esc(title(p))}</a></li>`).join('')}</ul></article>`).join('');
+
+// ---------- Maps: built when scrolled into view, static (page scroll stays smooth) ----------
+function drawMap(node, pts, labelled) {
+  const map = new maplibregl.Map({ container: node, style: MAP_STYLE, interactive: false, attributionControl: { compact: true },
+    bounds: new maplibregl.LngLatBounds(pts.map(ll).reduce((b, c) => b.extend(c), new maplibregl.LngLatBounds(ll(pts[0]), ll(pts[0])))),
+    fitBoundsOptions: { padding: 50, maxZoom: 15 } });
+  map.on('load', () => {
+    if (!labelled && pts.length > 1) {
+      map.addSource('r', { type:'geojson', data:{ type:'Feature', geometry:{ type:'LineString', coordinates: pts.map(ll) } } });
+      map.addLayer({ id:'rc', type:'line', source:'r', layout:{ 'line-join':'round', 'line-cap':'round' }, paint:{ 'line-color':'#ffffff', 'line-width':8 } });
+      map.addLayer({ id:'rf', type:'line', source:'r', layout:{ 'line-join':'round', 'line-cap':'round' }, paint:{ 'line-color':'#2f5bd3', 'line-width':4 } });
+    }
+  });
+  pts.forEach((p, i) => new maplibregl.Marker({ element: el(labelled
+    ? `<div class="hood-pin">${esc(p.name)}</div>`
+    : `<div class="n-pin ${p.gig ? 'gig' : ''}">${i + 1}</div>`) }).setLngLat(ll(p)).addTo(map));
+}
+pending.push([document.getElementById('hoodmap'), HOODS, true]);
+const io = new IntersectionObserver(entries => entries.forEach(e => {
+  if (!e.isIntersecting) return;
+  io.unobserve(e.target);
+  const [node, pts, labelled] = pending.find(([n]) => n === e.target);
+  drawMap(node, pts, labelled);
+}), { rootMargin: '300px' });
+pending.forEach(([node]) => io.observe(node));
+</script>
+</body>
+</html>
